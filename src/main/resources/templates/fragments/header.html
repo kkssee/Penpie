@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/thymeleaf-extras-springsecurity6" lang="en">
+<head>
+    <title>Header</title>
+    <meta charset="UTF-8" />
+</head>
+<body>
+<div th:fragment="header">
+    <div class="header-wrapper">
+        <div>
+            <a href="/"><img id="logo-image" th:src="@{'/img/logo/penpie_lightmode.png'}" alt="CoverImage"></a>
+        </div>
+        <div class="header-searchBtn">
+            <form action="/search" method="GET">
+                <button id="glassBtn" type="submit"><i class="icon ph-bold ph-magnifying-glass"></i></button>
+            </form>
+        </div>
+    </div>
+</div>
+</body>
+</html>

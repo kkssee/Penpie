@@ -1,0 +1,71 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.test.novel.NovelMapper">
+    <insert id="addNovel" parameterType="NovelVO" useGeneratedKeys="true" keyProperty="nv_id" keyColumn="nv_id">
+        INSERT INTO novels (nv_id, nv_title, nv_desc, userno, created_at, updated_at, is_adult, is_secret, cover_path, is_completed, is_free)
+        VALUES (NV_SEQ.NEXTVAL, #{nv_title}, #{nv_desc}, #{userno}, SYSDATE, SYSDATE, #{is_adult}, #{is_secret}, #{cover_path}, 0, #{is_free})
+    </insert>
+
+
+    <!-- 카테고리 추가 -->
+    <insert id="addNovelCategory" parameterType="map">
+        INSERT INTO nvctg_list (nv_id, nvctg_id)
+        VALUES (#{nv_id}, (SELECT nvctg_id FROM nvctg WHERE nvctg_name = #{nvctg_name}))
+    </insert>
+
+    <!-- 태그 ID 가져오기 -->
+    <select id="getTagId" resultType="Integer" parameterType="String">
+        SELECT nvtag_id
+        FROM nvtag
+        WHERE nvtag_name = #{tagName}
+    </select>
+
+    <!-- 태그 생성 -->
+    <insert id="createTag" parameterType="String">
+        INSERT INTO nvtag (nvtag_id, nvtag_name)
+        VALUES (NVTAG_SEQ.NEXTVAL, #{tagName})
+    </insert>
+
+    <!-- 새로 생성된 태그 ID 조회 -->
+    <select id="getLastInsertTagId" resultType="Integer">
+        SELECT NVTAG_SEQ.CURRVAL FROM dual
+    </select>
+
+    <!-- 태그 생성 -->
+    <insert id="insertTag" parameterType="map">
+        INSERT INTO nvtag_list (nv_id, nvtag_id)
+        VALUES (#{nv_id}, #{nvtag_id})
+    </insert>
+
+    <select id="getCategories" resultType="String">
+        SELECT nvctg_name FROM nvctg
+    </select>
+
+    <!-- 이전 에피소드를 가져오는 쿼리 -->
+    <select id="getPreviousEpisode" parameterType="map" resultType="com.test.novel.EpisodeVO">
+        <![CDATA[
+        SELECT * FROM (
+                          SELECT ep.*,
+                                 ROW_NUMBER() OVER (PARTITION BY nv_id ORDER BY ep_date DESC) AS episode_number
+                          FROM episode ep
+                          WHERE nv_id = #{nv_id} AND ep_id < #{ep_id}
+                      )
+        WHERE episode_number = 1
+        ]]>
+    </select>
+
+    <!-- 다음 에피소드를 가져오는 쿼리 -->
+    <select id="getNextEpisode" parameterType="map" resultType="com.test.novel.EpisodeVO">
+        <![CDATA[
+        SELECT * FROM (
+                          SELECT ep.*,
+                                 ROW_NUMBER() OVER (PARTITION BY nv_id ORDER BY ep_date ASC) AS episode_number
+                          FROM episode ep
+                          WHERE nv_id = #{nv_id} AND ep_id > #{ep_id}
+                      )
+        WHERE episode_number = 1
+        ]]>
+    </select>
+</mapper>

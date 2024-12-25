@@ -1,0 +1,406 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>소설 상세보기</title>
+
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"
+            integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo="
+            crossorigin="anonymous"></script>
+    <link href="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.snow.css" rel="stylesheet" />
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="icon" href="data:;base64,iVBORw0KGgo=">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+        }
+
+        main {
+            max-width: 800px;
+            margin: 20px auto;
+            padding: 20px;
+            background: #fff;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        h3 {
+            font-size: 24px;
+            margin-bottom: 20px;
+            text-decoration-color: white;
+        }
+        .viewer-container {
+            margin: 20px 0;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            overflow: hidden;
+        }
+
+        .viewer-container #quillViewer {
+            padding: 20px;
+        }
+
+        .like-btn {
+            color: #fff;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        .like-btn:hover {
+            color: white;
+        }
+
+        .info-section {
+            margin-bottom: 20px;
+        }
+
+        .info-section label {
+            font-weight: bold;
+        }
+
+        .info-section span {
+            margin-left: 10px;
+        }
+
+        .info-section .tags {
+            margin-top: 10px;
+        }
+
+        .info-section .tags .tag {
+            display: inline-block;
+            background: #e9ecef;
+            border-radius: 5px;
+            padding: 5px 10px;
+            margin: 5px;
+        }
+
+        p {
+            margin: 10px 0;
+        }
+
+        a {
+            text-decoration: none;
+        }
+
+        a button {
+            background-color: #007bff;
+            color: #fff;
+        }
+
+        a button:hover {
+            background-color: #0056b3;
+        }
+
+        .icon-button {
+            display: flex;
+            align-items: center;
+            padding: 0 20px;
+            cursor: pointer;
+            color: #2b2b2b !important;
+            font-size: 17px;
+            text-decoration: none !important;
+            white-space: nowrap;
+            font-weight: bold;
+            transition: 0.5s;
+            background: white;
+            position: relative; /* 포지션 추가 */
+        }
+
+        .count {
+            margin-left: 10px; /* 기본 여백 추가 */
+            transform: translateX(-100%); /* 기본 위치 설정 */
+            opacity: 0; /* 기본 투명도 설정 */
+            transition: transform 0.3s ease, opacity 0.3s ease; /* 애니메이션 설정 */
+        }
+
+        .icon-button:hover .count {
+            transform: translateX(0); /* 호버 시 위치 이동 */
+            opacity: 1; /* 호버 시 투명도 변경 */
+        }
+
+        .icon-button .fas.fa-heart { /* 채워진 하트일 경우 */
+            color: red; /* 하트 내부 색상 */
+            transition: 0.5s;
+        }
+
+        .icon-button .far.fa-heart { /* 빈 하트일 경우 */
+            color: black; /*기본 빈 하트 색상 */
+            transition: 0.5s;
+        }
+
+        .icon-button:hover .fas.fa-heart { /* 채워진 하트 hover 시 */
+            color: #ff4d4d; /* 더 밝은 빨간색 */
+            transform: translate(0%, -20%);
+        }
+
+        .icon-button:hover .far.fa-heart { /* 빈 하트 hover 시 */
+            color: black; /* 호버 시 빈 하트 색상 변경 */
+            transform: translate(0%, -20%);
+        }
+
+        .float-button-container {
+            z-index: 1000;
+            position: fixed;
+            transform: translate(-50%, 0%);
+            left: 50%;
+            bottom: 30px;
+
+            display: flex;
+            visibility: visible;
+            flex-direction: row;
+            align-items: center;
+            justify-content: space-around;
+            padding:0 10px;
+
+            background: white;
+            height: 40px;
+            box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.2);
+            border:1px solid #e9e9e9;
+            border-radius: 30px;
+            text-decoration: none !important;
+        }
+
+        .float-button, .scrollToTopBtn {
+            display: flex;
+            align-items: center;
+            padding:0 20px;
+            border: none;
+            cursor: pointer;
+            color:#2b2b2b !important;
+            font-size: 13px;
+            text-decoration: none !important;
+            white-space: nowrap;
+            font-weight: bold;
+            transition: 0.5s;
+            background: white;
+        }
+
+        .float-button:hover , .scrollToTopBtn:hover {
+            transform: translate(0%, -20%);
+        }
+
+        .float-button-image {
+            height: 20px;
+            margin-right:5px;
+        }
+
+        .episode-banner {
+            position: fixed;
+            background-color: #f8f9fa; /* 밝고 눈에 띄지 않는 색상 */
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            top: 0;
+            left: 0;
+            right: 0;
+            padding: 10px 20px; /* 상하 여백 축소 */
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* 가벼운 그림자 */
+            font-size: 14px; /* 폰트 크기 축소 */
+            z-index: 1000;
+        }
+
+        .episode-banner button {
+            background-color: #007bff; /* 버튼 색상 유지 */
+            color: white;
+            border: none;
+            border-radius: 5px;
+            padding: 5px 10px; /* 패딩 축소 */
+            font-size: 14px;
+            cursor: pointer;
+        }
+
+        .episode-banner button:hover {
+            background-color: #0056b3;
+        }
+
+        .episode-banner p {
+            margin: 0;
+            font-weight: 500;
+        }
+
+        .episode-banner span {
+            font-size: 14px;
+            color: #495057; /* 약간 어두운 텍스트 색상 */
+        }
+
+    </style>
+    <script>
+        $(document).ready(function() {
+            $(document).on('click', '.like-btn', function () {
+                const ep_id = $(this).data('id');
+                const liked = $(this).data('liked');
+                $.ajax({
+                    url: '/novel/likeEp',
+                    method: 'POST',
+                    data: {
+                        ep_id: ep_id,
+                        liked: liked
+                    },
+                    success: function (response) {
+                        if (response.success) {
+                            const button = $(`button[data-id="${ep_id}"]`);
+                            button.data('liked', response.liked);
+                            location.reload();
+                        } else {
+                            alert('좋아요 처리에 실패했습니다.');
+                        }
+                    },
+                    error: function (xhr, status, err) {
+                        alert('좋아요 처리에 실패했습니다.');
+                    }
+                });
+            });
+
+            let hasScrolledToBottom = false; // 스크롤 끝 상태를 확인하는 변수
+            let hasScrolledToTop = false; // 스크롤 위 상태를 확인하는 변수
+            const epId = $("#epId").val();
+            const nvId = $("#nvId").val();
+
+            $(window).scroll(function() {
+                const scrollPosition = $(this).scrollTop(); // 현재 스크롤 위치
+                const documentHeight = $(document).height(); // 전체 문서 높이
+                const windowHeight = $(this).height(); // 윈도우 높이
+
+                // 스크롤이 문서 끝에 가까워지면
+                if (scrollPosition >= documentHeight - windowHeight - 1 && scrollPosition < documentHeight && !hasScrolledToBottom && $(this).scrollTop() > $(this).height()) {
+                    hasScrolledToBottom = true; // 스크롤 상태 변경
+                    $('.float-button-container').show();
+                    $('.episode-banner').show();
+                    showConfirmationDialog(epId, nvId, "Go to the next episode?");
+                }
+
+                // 스크롤이 문서 맨 위에 가까워지면
+                if (scrollPosition >= 0 && scrollPosition < 1 && !hasScrolledToTop && $(this).scrollTop() < $(this).height()) {
+                    hasScrolledToTop = true; // 스크롤 상태 변경
+                    showConfirmationDialog(epId, nvId, "Go to the previous episode?");
+                }
+
+                if (scrollPosition < documentHeight - windowHeight - 50) {
+                    hasScrolledToBottom = false; // 스크롤이 문서 끝에서 멀어지면 상태를 초기화
+                }
+
+                if (scrollPosition >= 50) {
+                    hasScrolledToTop = false; // 스크롤이 문서 맨 위에서 멀어지면 상태를 초기화
+                }
+
+                // 버튼 클릭 시 페이지 맨 위로 스크롤
+                document.getElementById('scrollToTopBtn').onclick = function() {
+                    window.scrollTo({ top: 0, behavior: 'smooth' });
+                };
+            });
+
+            function showConfirmationDialog(epId, nvId, msg) {
+                if (confirm(msg)) {
+                    if (msg.includes("previous")) {
+                        location.href = '/novel/prevEp/' + epId + '/' + nvId;
+                    } else {
+                        location.href = '/novel/nextEp/' + epId + '/' + nvId;
+                    }
+                }
+            }
+        });
+
+        // 페이지 클릭 시 버튼 보이기
+        $(document).on('click', function () {
+            $('.float-button-container').show();
+            $('.episode-banner').show();
+        });
+
+        // 스크롤 시 버튼 숨기기
+        $(window).on('scroll', function() {
+            $('.float-button-container').hide();
+            $('.episode-banner').hide();
+        });
+
+
+    </script>
+    <script th:inline="javascript">
+        /*<![CDATA[*/
+        // 세션에 저장된 메시지를 Thymeleaf로 가져옴
+        let message = [[${session.popupMessage != null ? session.popupMessage : 'null'}]];
+        if (message !== 'null') {
+            // 메시지가 있을 경우 alert로 팝업 띄움
+            alert(message);
+        }
+        /*]]>*/
+
+        $(document).on('click', function () {
+                $('.float-button-container').css('visibility', 'visible');
+                $('.episode-banner').css('visibility', 'visible');
+        });
+        // 스크롤 시 버튼 숨기기
+        $(window).on('scroll', function() {
+            $('.float-button-container').css('visibility', 'hidden');
+            $('.episode-banner').css('visibility', 'hidden');
+        });
+        // 버튼 클릭 시 페이지 맨 위로 스크롤
+        document.getElementById('scrollToTopBtn').onclick = function() {
+            window.scrollTo({
+                top: 0,
+                behavior: 'smooth' // 부드러운 스크롤
+            });
+        };
+    </script>
+</head>
+<body>
+<main th:object="${ev}">
+    <input type="hidden" th:value="${ev.ep_id}" id="epId">
+    <input type="hidden" th:value="${ev.nv_id}" id="nvId">
+    <div class='episode-banner'>
+        <a th:href="|/novel/detail/*{nv_id}/episodes|"><button>Episode list</button></a>
+        <p>Ep. [[*{episode_number}]]</p>
+        <span th:text="*{ep_title}"></span>
+    </div>
+    <div class="viewer-container">
+        <div id="quillViewer" th:utext="*{ep_contents}">
+        </div>
+    </div>
+    <p th:if="${message}" th:text="${message}"></p>
+
+    <!-- Floating Buttons -->
+    <div class='float-button-container'>
+        <a class="float-button" th:href="@{|/novel/prevEp/*{ep_id}/*{nv_id}|}">
+            <
+        </a>
+        <button class="icon-button like-btn"
+                th:data-id="${ev.ep_id}"
+                th:data-liked="${ev.isLiked}">
+            <i th:classappend="${ev.isLiked == 1 ? 'fas fa-heart' : 'far fa-heart'}"></i>
+            <span class="count" th:text="${ev.likeCount}"></span>
+        </button>
+
+        <!-- Scroll to Top Button -->
+        <button id="scrollToTopBtn" class="scrollToTopBtn" title="Go to top">^</button>
+
+        <a class="float-button" th:href="@{|/novel/comments/*{ep_id}|}">
+            <i class="far fa-comment non-clickable-icon"></i>
+        </a>
+        <a class="float-button" th:href="@{|/novel/nextEp/*{ep_id}/*{nv_id}|}">
+            >
+        </a>
+    </div>
+</main>
+
+<script src="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.js"></script>
+
+<script>
+    const quill = new Quill('#quillViewer', {
+        modules: {
+            toolbar: false, // 툴바 비활성화
+            clipboard: true // 클립보드 모듈 활성화
+        },
+        theme: 'snow',
+        readOnly: true
+    });
+
+</script>
+</body>
+</html>

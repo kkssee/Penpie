@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.test.chat.ChatMapper">
+    <select id="findOpponentProfileImg" resultType="String">
+        SELECT CASE
+                   WHEN c.sender = #{userno} THEN u2.profileimg
+                   ELSE u1.profileimg
+                   END AS profileimg
+        FROM Chat_RoomVO c
+                 JOIN users u1 ON u1.userno = c.sender
+                 JOIN users u2 ON u2.userno = c.receiver
+        WHERE c.id = #{id}
+          AND (c.sender = #{userno} OR c.receiver = #{userno})
+    </select>
+
+</mapper>

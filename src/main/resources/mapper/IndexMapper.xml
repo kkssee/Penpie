@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.test.index.IndexMapper">
+    <select id="top5Views" resultType="com.test.novel.NovelVO">
+    <![CDATA[
+        SELECT * FROM NOVELS WHERE nv_id IN (
+            SELECT nv_id FROM (
+                                  SELECT nv_id, SUM(ep_views) AS total_views FROM episode GROUP BY nv_id
+                                  ORDER BY total_views DESC
+                              ) WHERE ROWNUM <= 5)
+        ]]>
+    </select>
+
+    <select id="top5Create" resultType="com.test.novel.NovelVO">
+        <![CDATA[
+        SELECT *
+        FROM (SELECT * FROM NOVELS ORDER BY created_at DESC)
+        WHERE ROWNUM <= 5
+        ]]>
+    </select>
+
+    <select id="getBanners" resultType="com.test.index.BannerVO">
+        SELECT * FROM Banner
+    </select>
+
+    <select id="getLastReadNovels" resultType="com.test.novel.NovelVO">
+        SELECT
+            n.nv_id,
+            n.nv_title,
+            n.cover_path,
+            ep_with_number.ep_id,
+            ep_with_number.episode_number,
+            u.nickname
+        FROM
+            novels n
+                JOIN
+            (SELECT
+                 e.ep_id,
+                 e.ep_title,
+                 e.ep_date,
+                 n.nv_id,
+                 ROW_NUMBER() OVER (PARTITION BY n.nv_id ORDER BY e.ep_date ASC) AS episode_number
+             FROM
+                 episode e
+                     JOIN novels n ON e.nv_id = n.nv_id
+            ) ep_with_number ON n.nv_id = ep_with_number.nv_id
+                JOIN
+            (SELECT
+                 vh.nv_id,
+                 vh.ep_id,
+                 vh.rdate
+             FROM
+                 view_history vh
+             WHERE
+                 vh.userno = #{userno}
+               AND vh.rdate = (SELECT MAX(rdate)
+                               FROM view_history
+                               WHERE userno = #{userno}
+                                 AND nv_id = vh.nv_id)
+            ) last_read ON ep_with_number.ep_id = last_read.ep_id
+                JOIN
+            users u ON n.userno = u.userno
+                JOIN
+            novel_subscribe ns ON n.nv_id = ns.nv_id AND ns.userno = #{userno}  -- 구독한 작품 조건 추가
+        ORDER BY
+            last_read.rdate DESC
+    </select>
+
+</mapper>

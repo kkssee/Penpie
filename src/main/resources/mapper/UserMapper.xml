@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.test.users.UserMapper">
+    <select id="findByID" parameterType="String" resultType="com.test.users.UserVO">
+        SELECT * FROM users WHERE userid = #{username}
+    </select>
+
+    <select id="getFollowingCount" parameterType="Long" resultType="Integer">
+        SELECT COUNT(userno) FROM AUTHOR_SUBSCRIBE WHERE userno = #{userno}
+    </select>
+
+    <select id="getFollowerList" parameterType="map" resultType="com.test.users.UserVO">
+        SELECT u.userno, u.nickname, u.profileimg,
+               CASE
+                   WHEN (SELECT COUNT(*) FROM author_subscribe
+                         WHERE userno = #{viewerUserNo}
+                           AND authorno = s.userno) > 0
+                       THEN 1 ELSE 0
+                   END AS isSubscribed,
+               CASE
+                   WHEN u.userno = #{viewerUserNo} THEN 1
+                   ELSE 0
+                   END AS is_viewer
+        FROM author_subscribe s
+                 JOIN users u ON s.userno = u.userno
+        WHERE s.authorno = #{userno}
+        ORDER BY is_viewer DESC
+    </select>
+
+    <select id="getFollowingList" parameterType="map" resultType="com.test.users.UserVO">
+        SELECT u.userno, u.nickname, u.profileimg,
+               CASE
+                   WHEN (SELECT COUNT(*) FROM author_subscribe
+                         WHERE userno = #{viewerUserNo}
+                           AND authorno = s.authorno) > 0
+                       THEN 1 ELSE 0
+                   END AS isSubscribed,
+               CASE
+                   WHEN u.userno = #{viewerUserNo} THEN 1
+                   ELSE 0
+                   END AS is_viewer
+        FROM author_subscribe s
+                 JOIN users u ON s.authorno = u.userno
+        WHERE s.userno = #{userno}
+        ORDER BY is_viewer DESC
+    </select>
+
+    <!-- CustomUserDetails -->
+    <select id="findByUserId" resultType="com.test.CustomUserDetails">
+        SELECT userno, userid, username, password, nickname, enabled, profileImg, is_Adult, is_Author FROM users WHERE userid = #{username}
+    </select>
+    <select id="loadUserAuthorities" parameterType="Long" resultType="String">
+        SELECT authority FROM authorities WHERE userno = #{userno}
+    </select>
+
+
+    <select id="getPoint" parameterType="com.test.users.UserVO" resultType="int">
+        SELECT point FROM points WHERE userno = #{userno}
+    </select>
+    <insert id="createPoint" parameterType="com.test.users.UserVO">
+        INSERT INTO points (userno, point)
+        VALUES (#{userno}, #{pie_point})
+    </insert>
+    <update id="savePoint" parameterType="com.test.users.UserVO">
+        UPDATE points
+        SET point = point + #{pie_point}
+        WHERE userno = #{userno}
+    </update>
+    <insert id="pointRecord" parameterType="com.test.users.UserVO">
+        INSERT INTO point_record (p_record_id, userno, amount, createdAt)
+        VALUES (POINT_RECORD_SEQ.NEXTVAL, #{userno}, #{pie_point}, SYSDATE)
+    </insert>
+</mapper>

@@ -1,0 +1,326 @@
+:root {
+    color-scheme: light;
+    --closeBtn: #282828;
+    --layer-color: whitesmoke;
+    --layer-fonts: #333;
+    --visibilityStatus-color: #666;
+    --visibilityInfo-color: #fff;
+    --visibility-background: #000;
+}
+@media (prefers-color-scheme: light) {
+    :root {
+        --closeBtn: #282828;
+        --layer-color: whitesmoke;
+        --layer-fonts: #333;
+        --visibilityStatus-color: #666;
+        --visibilityInfo-color: #fff;
+        --visibility-background: #000;
+    }
+}
+@media (prefers-color-scheme: dark) {
+    :root {
+        --closeBtn: #878c9e;
+        --layer-color: #282828;
+        --layer-fonts: #f8f8f8;
+        --visibilityStatus-color: #424755;
+        --visibilityInfo-color: #424755;
+        --visibility-background: #fff;
+    }
+}
+.light-theme {
+    --closeBtn: #282828;
+    --layer-color: whitesmoke;
+    --layer-fonts: #333;
+    --visibilityStatus-color: #666;
+    --visibilityInfo-color: #fff;
+    --visibility-background: #000;
+}
+.dark-theme {
+    --closeBtn: #878c9e;
+    --layer-color: #282828;
+    --layer-fonts: #f8f8f8;
+    --visibilityStatus-color: #424755;
+    --visibilityInfo-color: #424755;
+    --visibility-background: #fff;
+}
+
+
+.pop-layer .pop-container {
+    padding: 20px 25px;
+    transition: all 0.3s;
+
+}
+
+/* 사이드바가 열린 상태에서 팝업 레이어의 크기 조정 */
+body.active .pop-layer {
+    left: 50%; /* 사이드바가 닫힐 때 화면 중앙 */
+    width: 70%; /* 기본 너비 */
+
+}
+
+/* 사이드바가 닫힌 상태에서 팝업 레이어의 크기 조정 */
+body:not(.active) .pop-layer {
+    left: calc(50% + 92px); /* 사이드바가 열렸을 때 화면 중앙에서 오른쪽으로 92px 이동 */
+    width: calc(70% - 92px); /* 사이드바 너비만큼 팝업의 너비를 줄임 */
+}
+
+.pop-layer {
+    display: none;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 70%;
+    height: 80%;
+    background-color: var(--layer-color);
+    z-index: 10;
+    border-radius: 30px;
+    overflow: hidden; /* 기본적으로 넘치는 부분을 숨김 */
+    transition: all 0.3s;
+
+}
+.pop-conts {
+    max-height: 70vh; /* 화면의 80% 정도를 최대 높이로 설정 */
+    overflow-y: auto; /* 내용이 넘칠 경우 세로 스크롤 추가 */
+    padding-right: 15px; /* 스크롤바 때문에 공간 확보 */
+}
+
+.dim-layer {
+    display: none;
+    position: fixed;
+    _position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    z-index: 100;
+}
+
+.dim-layer .dimBg {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: #000;
+    opacity: .5;
+    filter: alpha(opacity=50);
+}
+
+.dim-layer .pop-layer {
+    display: block;
+}
+
+a.btn-layerClose {
+    display: inline-block;
+    height: 25px;
+    padding: 0 14px 0;
+    border: none;
+    background: none;
+    font-size: 13px;
+    color: var(--closeBtn);
+    line-height: 25px;
+    margin-right: 30px;
+    margin-top: 10px;
+}
+
+a.btn-layerClose:hover {
+    border: none;
+    background: none;
+    color: #fff;
+}
+
+/* Character Visibility Toggle */
+.toggleContainer {
+    display: flex;
+    align-items: center;
+}
+
+.toggleSwitch {
+    position: relative;
+    background-color: #fff;
+    box-shadow: 0 0 16px 3px rgba(0, 0, 0, 0.15);
+    cursor: pointer;
+    margin: 30px;
+    transition: background-color 0.2s ease-in;
+
+    display: inline-block;
+    width: 50px;
+    height: 25px;
+    border-radius: 50px;
+}
+
+.toggleButton {
+    width: 20px;
+    height: 20px;
+    position: absolute;
+    top: 5px;
+    left: 5px;
+    border-radius: 50%;
+    background: black;
+    transition: all 0.3s ease-in-out;
+}
+
+#characterVisibilityToggle:checked ~ .toggleSwitch {
+    background: black;
+}
+
+#characterVisibilityToggle:checked ~ .toggleSwitch .toggleButton {
+    transform: translateX(20px);
+    background: #fff;
+}
+
+#visibilityStatus {
+    margin-left: 10px;
+    font-size: 14px;
+    color: var(--visibilityStatus-color);
+}
+
+
+
+
+/* hoverText */
+.visibilityInfo {
+    display: flex;
+    position: relative;
+    border-bottom: 1px dotted black;
+}
+
+.visibilityInfo:before {
+    content: attr(data-hover);
+    visibility: hidden;
+    opacity: 0;
+    width: max-content;
+    background-color: var(--visibility-background);
+    color: var(--visibilityInfo-color);
+    text-align: center;
+    border-radius: 5px;
+    padding: 5px 5px;
+    transition: opacity 0.2s ease-in-out;
+
+    position: absolute;
+    z-index: 1;
+    left: 0;
+    top: 110%;
+}
+
+.visibilityInfo:hover:before {
+    opacity: 1;
+    visibility: visible;
+}
+.visibilityInfo i {
+    font-size: 17px;
+    margin-left: 5px; /* 아이콘과 텍스트 간의 간격 */
+}
+
+
+
+
+h1 {
+    font-size: 24px;
+    margin-bottom: 10px;
+    color: var(--layer-fonts);
+}
+
+a.link-userPrompt {
+    color: #007bff;
+    text-decoration: none;
+}
+
+a.link-userPrompt:hover {
+    text-decoration: underline;
+}
+
+/* 버튼과 레이어 닫기 버튼 */
+.btn-r {
+    position: absolute;
+    top: 20px;
+    right: 20px;
+}
+
+.btn-r .btn-layerClose button {
+    background-color: transparent;
+    border: none;
+    cursor: pointer;
+}
+
+.btn-r .btn-layerClose button i {
+    font-size: 24px;
+    color: var(--layer-fonts);
+}
+
+/* 입력 필드 스타일 */
+label {
+    font-size: 16px;
+    margin-top: 10px;
+    display: block;
+    color: var(--layer-fonts);
+}
+input[type="text"], textarea {
+    width: 80%;
+    padding: 12px;
+    font-size: 16px;
+    color: var(--layer-fonts);
+    background-color: #f8f8f8;
+    border-radius: 8px;
+    box-sizing: border-box; /* padding 포함된 크기 계산 */
+    transition: box-shadow 0.3s ease, border-color 0.3s ease;
+    outline: none;
+    border: none;
+}
+
+/* 포커스 상태 스타일 */
+input[type="text"]:focus, textarea:focus {
+    outline: none;
+    border-color: #4caf50; /* 초록색 테두리 */
+    box-shadow: 0 0 8px rgba(76, 175, 80, 0.6); /* 포커스 시 그림자 */
+}
+
+/* 텍스트 영역 (textarea) 스타일 */
+textarea {
+    height: 150px; /* 기본 높이 설정 */
+    resize: vertical; /* 세로 크기 조정 가능 */
+}
+
+/* 입력 필드 비활성화 상태 */
+input[type="text"]:disabled, textarea:disabled {
+    background-color: #e0e0e0;
+    cursor: not-allowed;
+}
+
+/* 입력 필드와 텍스트 영역의 기본 스타일 */
+input[type="text"], textarea {
+    font-family: 'Arial', sans-serif; /* 폰트 설정 */
+}
+
+/* 라벨과 입력 필드 간 간격 설정 */
+label {
+    margin-top: 7px;
+    display: block;
+}
+
+input[type="text"], input[type="file"], textarea {
+    width: 90%;
+    padding: 10px;
+    margin-top: 5px;
+    margin-bottom: 15px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+    font-size: 14px;
+}
+
+input[type="text"]:focus, textarea:focus {
+    border-color: #007bff;
+    outline: none;
+}
+
+textarea {
+    resize: vertical;
+    height: 100px;
+}
+
+#imagePreview {
+    margin-top: 10px;
+    border-radius: 5px;
+    box-shadow: 0 0 5px rgba(0, 0, 0, 0.1);
+}
+

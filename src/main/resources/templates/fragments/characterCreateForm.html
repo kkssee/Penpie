@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/thymeleaf-extras-springsecurity6" lang="en">
+<head>
+    <title>Character create form</title>
+    <meta charset="UTF-8" />
+</head>
+<body>
+<div th:fragment="chatBotCreateForm">
+    <form id="characterCreateForm" enctype="multipart/form-data">
+        <a href="#layer1" class="btn-example"><button type="button">Create a Character</button></a>
+        <div class="dim-layer">
+            <div class="dimBg"></div>
+            <div id="layer1" class="pop-layer">
+                <div class="pop-container">
+                    <div class="pop-conts">
+                        <div class="btn-r">
+                            <a href="#" class="btn-layerClose"><button type="button"><i class="icon ph-bold ph-x"></i></button></a>
+                        </div>
+                        <!--content //-->
+                        <br><h1>Create a Character</h1><br>
+                        <label for="characterName">Name</label>
+                        <input type="text" id="characterName" name="characterName" autocomplete="off" placeholder="Enter character name"><br>
+                        <label for="characterDesc">Description</label>
+                        <input type="text" id="characterDesc" name="characterDesc" autocomplete="off" placeholder="Describe your character in a brief, concise sentence"><br>
+                        <label for="characterPrompt">Prompt</label>
+                        <textarea id="characterPrompt" name="characterPrompt" autocomplete="off" ></textarea><br>
+                        <label for="relationships">Relationships</label>
+                        <textarea id="relationships" name="relationships"></textarea><br>
+                        <label for="toggle"></label><input type="checkbox" id="toggle" hidden>
+                        <div class="visibilityInfo" data-hover="Show this text when hovered">
+                            Character Visibility <i class="icon ph-bold ph-question"></i></div>
+                        <div class="toggleContainer">
+                            <input type="checkbox" id="characterVisibilityToggle" hidden>
+                            <input type="hidden" id="characterVisibility" name="characterVisibility" value="0">
+                            <label for="characterVisibilityToggle" class="toggleSwitch">
+                                <span class="toggleButton"></span>
+                            </label><br>
+                            <span id="visibilityStatus">Public<br>Once set to public, you cannot change it back to private.</span>
+                        </div>
+
+                        <div>
+                            <label>Character Image</label><br>
+                            <input type="file" id="file" name="file" accept="image/*" required><br>
+                            <img id="imagePreview" src="#" alt="Image Preview"
+                                 style="display:none; width: 100px; height: 100px; margin-top: 10px;">
+                        </div>
+
+                        <button type="reset">reset</button>
+                        <div class="btn-summit">
+                            <button type="button" id="createCharacterBtn" onclick="createCharacter();">Create</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+</body>
+</html>

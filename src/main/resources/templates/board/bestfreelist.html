@@ -1,0 +1,228 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>bestFreelist</title>
+    <style>
+        /* General styles */
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+        }
+
+        /* Header styles */
+        header {
+            padding: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between; /* Space items out */
+            background-color: #fff;
+            color: #666666;
+            border-bottom: 1px solid #ddd; /* Border at the bottom of the header */
+            flex-wrap: wrap;
+            /* height: auto;*/
+        }
+
+        header img {
+            max-width: 200px;
+            height: auto;
+            /*
+            display: block;
+            margin: 0;*/
+        }
+
+        header select, header input[type="text"], header button {
+            margin: 5px;
+            padding: 5px;
+            border-radius: 5px;
+            border: 1px solid #ccc;
+        }
+
+
+        header button:hover {
+            background-color: #777;
+        }
+
+        header a {
+            color: #fff;
+            text-decoration: none;
+        }
+        header .search-container {
+            display: flex;
+            align-items: center;
+        }
+        header .search-container input[type="text"],
+        header .search-container select {
+            margin-right: 5px; /* Adjust spacing */
+        }
+
+        header .search-container button {
+            margin-right: 10px; /* Space between search and write buttons */
+        }
+        /* Reduce margin of the "글 작성하기" button */
+        header button:last-of-type {
+            margin-left: 5px; /* Decrease space between the search and "글 작성하기" button */
+        }
+        header button {
+            background-color: darkblue;
+            color: #fff;
+            cursor: pointer;
+        }
+
+        /* Navigation styles */
+        nav.nav {
+            background-color: darkblue;
+            padding: 10px;
+            text-align: center;
+        }
+
+        nav.nav li {
+            display: inline;
+            margin: 0 10px;
+        }
+
+        nav.nav a {
+            color: #fff;
+            text-decoration: none;
+        }
+
+        nav.nav a:hover {
+            text-decoration: underline;
+        }
+
+        /* Section styles */
+        section.section {
+            padding: 20px;
+            background-color: #fff;
+            margin: 20px;
+            border-radius: 5px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        section.section table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        section.section th, section.section td {
+            padding: 10px;
+            border: 1px solid #ddd;
+            text-align: left;
+        }
+
+        section.section th {
+            background-color: #f2f2f2;
+        }
+
+        /* Footer styles */
+        footer.footer {
+            background-color: #333;
+            color: #fff;
+            padding: 10px 0;
+            text-align: center;
+            position: fixed;
+            width: 100%;
+            bottom: 0;
+        }
+
+        footer.footer a {
+            color: #fff;
+            text-decoration: none;
+            margin: 0 5px;
+        }
+
+        footer.footer a:hover {
+            text-decoration: underline;
+        }
+
+        /* Current page style */
+        .current-page {
+            font-weight: bold;
+            text-decoration: underline;
+        }
+
+    </style>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <script type="text/javascript">
+        function search(){
+            let cate = $('#cate').val();
+            var opt = $('#opt').val();
+            var keyword = $('#search').val();
+
+            location.href = '/board/search/?cate=' + cate + '&opt=' + opt + '&keyword=' + keyword;
+        }
+    </script>
+</head>
+<body>
+<header>
+    <a href="/index"><button style="border: none; background-color: transparent;">
+        <img src="/img/logo/logo.png" alt="Logo">
+    </button></a>
+    <div class="search-container">
+        <select name="cate" id="cate">
+            <option value="자유게시판">자유게시판</option>
+            <option value="소설릴레이">소설릴레이</option>
+            <option value="실시간베스트">실시간 베스트</option>
+        </select>
+        <select name="opt" id="opt">
+            <option value="title">제목</option>
+            <<option value="ticont">제목+내용</option>
+            <option value="content">내용</option>
+        </select>
+        <input type="text" name="search" id="search">
+        <button type="button" onclick="search();">검색</button>
+    </div>
+    <button><a href='/board/postForm'>글 작성하기</a></button>
+</header>
+<nav class="nav">
+    <li><a href="/board/freelist/page/1">자유게시판</a></li>
+    <li><a href="/board/replylist/page/1">소설릴레이</a></li>
+    <li><a href="/board/best/page/1">실시간 베스트<span style="color:red;">!</span></a></li>
+</nav>
+
+<section class="section">
+    <table>
+        <tr><th>번호</th><th>제목</th><th>글쓴이</th><th>등록일</th><th>코멘트수</th><th>추천</th><th>조회수</th></tr>
+        <tr th:each="l, iterStat :${pageInfo.list}" th:if="${pageInfo != null}">
+            <td th:text="${pageInfo.total - (iterStat.index + pageInfo.pageSize * (pageInfo.pageNum - 1))}"></td> <!-- 번호 -->
+            <td>
+                <a th:href="@{/board/detail/{postid}(postid=${l.postid})}" th:text="${l.title}"></a>
+            </td>
+
+            <td th:text="${l.nickname}"></td>
+            <td th:text="${l.date}"></td>
+            <td th:text="${l.tcoment}"></td>
+            <td th:text="${l.plike}"></td>
+            <td th:text="${l.views}"></td>
+        </tr>
+
+    </table>
+</section>
+<footer class="footer">
+    <div>
+
+        <!--이전그룹-->
+        <span th:if="${pageInfo.navigateFirstPage > 1}">
+        <a th:href="|/board/best/page/${pageInfo.navigateFirstPage - 1}|"><<</a>
+    </span>
+
+
+        <span th:each="n : ${pageInfo.navigatepageNums}">  <!-- 페이지 링크에 사용될 페이지 번호 -->
+    <a th:href="|/board/best/page/${n}|"
+       th:classappend="${n == pageInfo.pageNum} ? 'current-page' : ''">
+        [[${n}]]
+    </a>
+</span>
+
+
+        <!--다음 그룹-->
+        <span th:if="${pageInfo.navigateFirstPage < pageInfo.pages}">
+        <a th:href="|/board/best/page/${pageInfo.navigateLastPage+1}|">>></a>
+        </span>
+
+    </div>
+</footer>
+</body>
+</html>

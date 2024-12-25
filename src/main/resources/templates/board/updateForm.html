@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>updateForm</title>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+    <meta charset="UTF-8">
+    <title>update form</title>
+    <link href="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.snow.css" rel="stylesheet" />
+    <style>
+        /* 툴바를 스크롤에 따라 고정 */
+        .ql-toolbar {
+            position: sticky; /* 스크롤에 따라 고정 */
+            top: 0; /* 상단에 위치 */
+            z-index: 1000; /* 다른 요소 위에 배치 */
+            background-color: #fff; /* 배경색 설정 */
+            border-bottom: 1px solid #ccc; /* 하단 테두리 추가 */
+        }
+    </style>
+    <style>
+        /* General styles */
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            background-color: #f4f4f4;
+        }
+
+        /* Header styles */
+        header {
+            padding: 10px;
+            display: flex;
+            justify-content: flex-start; /* Align items to the left */
+            align-items: center;
+            width: 100%;
+            z-index: 1000;
+            position: relative;
+            background-color: #fff;
+            color: #666666;
+            /* height: auto;*/
+        }
+
+        header img {
+            max-width: 200px;
+            height: auto;
+            display: block;
+            margin: 0;
+        }
+
+        header button {
+            border: none;
+            background-color: transparent;
+            cursor: pointer;
+        }
+        /* Header list item styles */
+        header ul {
+            list-style: none; /* Remove default list styling */
+            padding: 0;
+            margin: 0;
+            display: flex; /* Align items in a row */
+        }
+
+        header li {
+            margin-left: 20px; /* Space between list items */
+        }
+
+        header a {
+            color: #666666;
+            text-decoration: none;
+            font-weight: bold;
+            transition: text-decoration 0.3s; /* Smooth transition for underline effect */
+        }
+
+        header a:hover {
+            text-decoration: underline;
+        }
+
+
+
+        /* Navigation styles */
+        nav.nav {
+            background-color: #444;
+            padding: 10px;
+            width: 200px;
+            text-align: center;
+            /*height: 100vh;*/
+            height: calc(100vh - 50px); /* Adjust height to fill the remaining viewport height */
+            position: fixed; /* Fix navigation to the left side */
+            top: 50px; /* Adjust based on header height */
+            left: 0;
+            overflow-y: auto; /* Allow scrolling if content overflows */
+            z-index: 999;
+            display: flex; /* Use flexbox for alignment */
+            flex-direction: column; /* Stack items vertically */
+            align-items: center; /* Center items horizontally */
+            justify-content: center;
+        }
+
+        nav.nav ul {
+            list-style: none; /* Remove default list styling */
+            padding: 0;
+            margin: 0;
+            display: flex; /* Align items in a column */
+            flex-direction: column; /* Stack items vertically */
+            align-items: center;
+        }
+
+        nav.nav li {
+            margin: 20px 0; /* Add spacing between the menu items */
+        }
+
+        nav.nav a {
+            color: #fff;
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        nav.nav a:hover {
+            text-decoration: underline;
+        }
+        /* Main content styles */
+        main {
+            flex-grow: 1;
+            margin-left: 210px; /* Add margin to the left to avoid overlap with the nav */
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 10px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+            border: 2px solid #ccc; /* Border around the form */
+        }
+
+        form#PostForm {
+            padding: 20px;
+            border-radius: 10px; /* Rounded corners for the form */
+            border: 1px solid #ccc;
+        }
+
+        main h2 {
+            text-align: center;
+        }
+
+        main form div {
+            margin-bottom: 10px;
+        }
+
+        main form label {
+            display: inline-block;
+            width: 100px;
+        }
+
+        main form input[type="text"], main form select {
+            padding: 5px;
+            border: 1px solid #ccc;
+            border-radius: 5px;
+            width: calc(100% - 120px);
+        }
+
+        main form .editor-container {
+            margin-top: 20px;
+        }
+
+        main button {
+            padding: 10px 20px;
+            background-color: #555;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+        }
+
+        main button:hover {
+            background-color: #777;
+        }
+    </style>
+    <script type="text/javascript">
+        function loadExistingContent() {
+            quill.root.innerHTML = $('#content').val(); // Quill 에디터에 기존 내용을 삽입
+        }
+        $(document).ready(function() {
+            loadExistingContent(); // 페이지 로드 시 기존 내용을 에디터에 로드
+        });
+
+        function updatePost() {
+            var form = $('#updateForm')[0];
+            var data = new FormData(form);
+
+            // Quill 에디터 FormData에 추가
+            var postContent = quill.root.innerHTML;
+            data.append('postContent', postContent);
+
+            const postid = $('#post_id').val();
+            // 이미지 삭제 함수 호출
+            imagesToDelete.forEach(fileName => handleImageDelete(fileName));
+
+            $('#btnUpload').prop('disabled', true);
+            $.ajax({
+                enctype: 'multipart/form-data',
+                url: '/board/update/'+postid,
+                method: 'POST',
+                cache: false,
+                data: data,
+                dataType: 'json',
+                processData: false,
+                contentType: false,
+                timeout: 600000,
+                success: function(res) {
+                    if (res.updated>0) {
+                        alert('수정 성공');
+                        location.href = '/board/detail/' + postid;
+                    } else alert('수정 실패');
+                },
+                error: function(xhr, status, err) {
+                    alert('에러: ' + err);
+                    $('#btnUpload').prop('disabled', false);
+                }
+            });
+        }
+
+
+    </script>
+</head>
+<body>
+
+<header>
+    <a href="/index"><button style="border: none; background-color: transparent;">
+        <img src="/img/logo/logo.png" alt="Logo">
+    </button></a>
+    <ul>
+        <li><a href="/novel/list">소설 목록보기</a></li>
+    </ul>
+</header>
+<nav class="nav">
+    <ul>
+        <li><a href="/board/freelist/page/1">자유게시판</a></li>
+        <li><a href="/board/replylist/page/1">소설릴레이</a></li>
+        <li><a href='/board/postForm'>글 작성하기</a></li>
+    </ul>
+</nav>
+<main>
+    <h3 style="text-align: center;">게시글 수정</h3>
+    <form id="updateForm"
+          enctype="multipart/form-data"
+          th:object="${post}">
+        제목 <input type="text" name="title" th:value="*{title}"><br>
+        <input type="hidden" name="userno" id="userno" th:value="*{userno}">
+        <div><input type="hidden" id="content" th:value="*{content}"></div>
+
+        <div><input type="hidden" id="post_id" th:value="*{postid}"></div>
+        게시판 카테고리 <span th:text="*{cate_name}"></span><br>
+        <span th:text="*{date}"></span><br>
+        내용
+        <div class="editor-container">
+            <div id="editor" th:field="*{content}"></div>
+        </div>
+
+        <button type="button" id="btnUpload" onclick="updatePost();">수정</button>
+        <button type="reset">취소</button>
+    </form>
+</main>
+<script src="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.js"></script>
+
+<!-- Initialize Quill editor with additional functionalities -->
+<script>
+    const quill = new Quill('#editor', {
+        modules: {
+            toolbar: [
+
+                ['link', 'image', 'video'] // 링크, 이미지, 비디오
+            ],
+            clipboard: true // 클립보드 모듈 활성화
+        },
+        placeholder: '여기에 내용을 입력하세요...', // 플레이스홀더 텍스트
+        theme: 'snow',
+    });
+
+    // 이미지 업로드 핸들러
+    quill.getModule('toolbar').addHandler('image', function() {
+        const input = document.createElement('input');
+        input.setAttribute('type', 'file');
+        input.accept = 'image/*';
+        input.multiple = true;
+        input.click();
+
+        input.onchange = function() {
+            const files = input.files;
+
+            Array.from(files).forEach(file => {
+                const ext = file.name.split(".").pop().toLowerCase();
+
+                const allowedExtensions = ["gif", "jpg", "jpeg", "png", "bmp"];
+                if (!allowedExtensions.includes(ext)) {
+                    alert("jpg, jpeg, png, bmp, gif 파일만 업로드 가능합니다.");
+                    return;
+                }
+
+                const fileSize = file.size;
+                const maxSize = 20 * 1024 * 1024;
+
+                if (fileSize > maxSize) {
+                    alert("업로드 가능한 최대 이미지 용량은 20MB입니다.");
+                    return;
+                }
+
+                const formData = new FormData();
+                formData.append('uploadFile', file);
+
+                $.ajax({
+                    type: 'POST',
+                    enctype: 'multipart/form-data',
+                    url: '/board/imgs',
+                    data: formData,
+                    processData: false,
+                    contentType: false,
+                    dataType: 'text',
+                    success: function (data) {
+                        const range = quill.getSelection();
+                        const cleanFileName = data.replace(/[\[\]"]+/g, '');
+                        const encodedFileName = encodeURIComponent(cleanFileName);
+                        quill.insertEmbed(range.index, 'image', "/board/display?fileName=" + encodedFileName);
+                        // 이미지 엘리먼트에 파일 이름 저장
+                        const img = document.querySelector(`img[src*="${encodedFileName}"]`);
+                        if (img) {
+                            img.dataset.filename = cleanFileName;
+                        }
+                    },
+                    error: function (err) {
+                        console.log('ERROR!! ::');
+                        console.log(err);
+                    }
+                });
+            });
+        };
+    });
+
+    const imagesToDelete = new Set(); // 삭제할 이미지 파일명을 저장할 Set
+    // 에디터에서 텍스트 변경 감지
+    quill.on('text-change', function(delta, oldDelta, source) {
+        if (source !== 'user') {
+            return;
+        }
+
+        // 현재 상태와 이전 상태의 차이를 비교
+        const oldImages = extractImageUrls(oldDelta);
+
+        const newImages = extractImageUrls(quill.getContents());  // 현재 에디터의 이미지 목록
+
+        // 삭제된 이미지를 찾아서 처리
+        oldImages.forEach(oldImage => {
+            if (!newImages.includes(oldImage)) {
+                const fileName = oldImage.split('/').pop().split('?fileName=').pop();
+                if (fileName) {
+                    imagesToDelete.add(fileName);  // 삭제할 이미지 목록에 추가
+                }
+            }
+        });
+    });
+
+    // Delta에서 이미지 URL 추출
+    function extractImageUrls(delta) {
+        return delta.ops
+            .filter(op => op.insert && op.insert.image)
+            .map(op => op.insert.image);
+    }
+
+    // 이미지 삭제 요청 처리
+    function handleImageDelete(imageUrl) {
+        const fileName = imageUrl.split('/').pop().split('?fileName=').pop();
+
+        if (fileName) {
+            fetch(`/board/deleteImg?fileName=${fileName}`, {
+                method: 'DELETE'
+            })
+                .then(response => response.text())
+                .then(result => {
+                    console.log('이미지 삭제 성공:', result);
+                })
+                .catch(error => {
+                    console.error('이미지 삭제 실패:', error);
+                });
+        }
+    }
+</script>
+</body>
+</html>

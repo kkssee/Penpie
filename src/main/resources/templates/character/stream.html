@@ -1,0 +1,471 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/thymeleaf-extras-springsecurity6" lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LLM Chatbot</title>
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"
+            integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo="
+            crossorigin="anonymous"></script>
+
+    <!-- Sidebar -->
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+
+    <!-- stylesheet -->
+    <link rel="stylesheet" th:href="@{/css/chat-sidebar.css}">
+
+    <!-- icon err -->
+    <link rel="icon" href="data:;base64,iVBORw0KGgo=">
+
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        .message-content {
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+        .message-content code {
+            background-color: #f0f0f0;
+            padding: 2px 4px;
+            border-radius: 4px;
+            font-family: monospace;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+
+        header {
+            position: sticky;
+            top: 0px; /* 도달했을때 고정시킬 위치 */
+            padding: 5px;
+            background-color: white;
+            z-index: 10;
+        }
+
+        #chat-form {
+            position: fixed; /* 페이지 하단에 고정 */
+            bottom: 0; /* 페이지 하단에 위치 */
+            left: 56%; /* 가로 중앙에 위치 */
+            height: 10%;
+            width: 70%; /* 화면 가로를 꽉 채움 */
+            padding: 10px; /* 적당한 여백 */
+            background-color: white; /* 배경색 설정 */
+            border-top: 1px solid #ddd; /* 상단에 선 추가 (옵션) */
+            z-index: 20; /* 다른 요소들 위에 표시되도록 설정 */
+            max-width: 800px; /* 최대 너비 설정 */
+            transform: translateX(-50%);
+        }
+        /* 메시지 컨테이너 */
+        .chat-container {
+            max-width: 800px; /* 최대 너비 설정 */
+            margin: 0 auto;
+        }
+
+        #characterPic {
+            width: 40px;
+            height: 40px;
+            border-radius: 50%;
+            margin-right: 8px;
+        }
+
+        .main-container {
+            padding-bottom: 10%;
+            margin-bottom: 4%;
+        }
+
+        #chat-messages {
+            max-height: 70vh;
+            overflow-y: auto;
+        }
+
+        /* 스크롤바 트랙 (배경) */
+        #chat-messages::-webkit-scrollbar-track {
+            background: none; /* 연한 회색 */
+        }
+
+        /* 스크롤바 핸들 (움직이는 부분) */
+        #chat-messages::-webkit-scrollbar-thumb {
+            background: #888; /* 짙은 회색 */
+            border-radius: 10px; /* 둥근 모서리 */
+        }
+
+        /* 스크롤바 기본 너비 */
+        #chat-messages::-webkit-scrollbar {
+            width: 10px; /* 세로 스크롤바 너비 */
+        }
+
+        /* 핸들 호버 시 색상 */
+        #chat-messages::-webkit-scrollbar-thumb:hover {
+            background: #555; /* 더 짙은 회색 */
+        }
+
+        #loading-spinner {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            border: 4px solid #f3f3f3;
+            border-top: 4px solid #3498db;
+            border-radius: 50%;
+            width: 50px;
+            height: 50px;
+            animation: spin 2s linear infinite;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+    </style>
+</head>
+<body>
+<audio id="audioPreview" autoplay controls style="display: none"></audio>
+<div class="container">
+    <div th:insert="~{fragments/sidebar :: sidebar}"></div>
+    <div class="contents">
+    <div class="main-container flex-1 flex flex-col ml-64 p-4">
+        <header class="flex">
+            <a th:href="|/character/chat/${character.cno}|" style="text-decoration: none; display: flex; align-items: center;">
+                <img id="characterPic" th:src="@{'/img/characterPic/' + ${character.characterPic}}" alt="CoverImage">
+                <div class="novel-title">
+                    [[${character.characterName}]]
+                </div>
+            </a>
+
+            <select id="languageSelect" style="display: none">
+                <option value="en-US">English (US)</option>
+                <option value="zh-HK">Chinese (CN)</option>
+                <option value="ja-JP">Japanese (JP)</option>
+            </select>
+
+            <select id="voiceSelect" style="display: none">
+                <option value="TomHiddleston.mp3">=== 선택 ===</option>
+                <option th:each="voiceModel : ${voiceList}"
+                        th:value="${voiceModel.voicePath}"
+                        th:text="${voiceModel.voiceName}">
+                </option>
+            </select>
+
+            <button type="button" id="hangUpButton" class="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-black-500" style="display: none">
+                <i class="icon ph-bold ph-X"></i>
+            </button>
+        </header>
+
+        <div class="chat-container mx-auto p-4 flex-1 flex flex-col">
+            <div id="chat-messages" class="space-y-4"></div>
+        </div>
+        <div id="loading-spinner"></div>
+        <form id="chat-form" class="flex items-center mt-4">
+            <input
+                    type="text"
+                    id="message-input"
+                    name="message"
+                    autocomplete="off"
+                    placeholder="Type your message..."
+                    class="flex-1 p-2 border border-gray-300 rounded-l-lg focus:outline-none"
+                    required
+            >
+            <button
+                    type="submit"
+                    class="bg-blue-500 text-white px-4 py-2 rounded-r-lg hover:bg-blue-600 focus:outline-none focus:ring-2 focus:ring-blue-500 mr-2"
+            >
+                <i class="icon ph-bold ph-paper-plane-tilt"></i>
+            </button>
+
+            <button type="button" id="voiceCallButton" class="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-800 focus:outline-none focus:ring-2 focus:ring-black-500">
+                <i class="icon ph-bold ph-phone"></i>
+            </button>
+        </form>
+    </div>
+        </div>
+</div>
+</body>
+<script th:src="@{/js/sidebar.js}"></script>
+
+<script th:inline="javascript">
+    const chatHistory = /*[[${chatHistory}]]*/ [];
+    const voicePath = /*[[${voice.voicePath}]]*/ [];
+</script>
+
+<script>
+    const chatForm = document.getElementById('chat-form');
+    const messageInput = document.getElementById('message-input');
+    const chatMessages = document.getElementById('chat-messages');
+
+    const cno = "[[${cno}]]";
+    const userno = "[[${userno}]]";
+    const room_id = "[[${room_id}]]";
+    let characterPrompt = "[[${characterPrompt}]]";
+
+    const characterName = "[[${character.characterName}]]";
+    const characterPic = "[[${character.characterPic}]]";
+
+
+    document.addEventListener('DOMContentLoaded', () => {
+
+        chatHistory.forEach(message => {
+            if(parseInt(message.sender) === 0) {
+                addMessageToChat('User', message.message);
+            } else {
+                addMessageToChat(characterName, message.message);
+            }
+        });
+        setTimeout(() => {
+            chatMessages.scrollTop = chatMessages.scrollHeight;
+        }, 0);
+    });
+
+
+    chatForm.addEventListener('submit', async function(e) {
+        e.preventDefault();
+        const message = messageInput.value;
+
+        if (!message) return;
+        console.log(characterPrompt);
+
+        await addMessageToChat('User', message);
+        messageInput.value = '';
+
+        // Fetch streaming data from the server
+        try {
+            const response = await fetchStreamWithRetry('/stream', {
+                message: message,
+                characterPrompt: characterPrompt,
+                cno: cno,
+                room_id: room_id,
+                userno: userno
+            });
+            const reader = response.body.getReader();
+            let botMessageElement = await addMessageToChat(characterName, '');
+            let contentElement = botMessageElement.querySelector('.message-content');
+            await processStream(reader, contentElement);
+        } catch (error) {
+            console.error('Error fetching chatbot response:', error);
+            await addMessageToChat('System', 'An error occurred while fetching the response. Please try again.');
+        }
+    });
+
+    async function fetchStreamWithRetry(url, data, retries = 3) {
+        for (let i = 0; i < retries; i++) {
+            try {
+                const response = await fetch(url, {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify(data)
+                });
+                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                return response;
+            } catch (e) {
+                console.error(`Attempt ${i + 1} failed: ${e.message}`);
+                if (i === retries - 1) throw e;
+                await new Promise(resolve => setTimeout(resolve, 1000)); // Wait 1 second before retrying
+            }
+        }
+    }
+
+    async function processStream(reader, contentElement) {
+        const decoder = new TextDecoder("utf-8");
+        try {
+            while (true) {
+                const { done, value } = await reader.read();
+                if (done) break;
+                contentElement.innerHTML += decoder.decode(value, { stream: true });
+                chatMessages.scrollTop = chatMessages.scrollHeight;
+            }
+        } catch (error) {
+            console.error('Error processing stream:', error);
+            contentElement.innerHTML += '<br>[Error: Stream interrupted. Please try again.]';
+        }
+    }
+
+    async function addMessageToChat(sender, content) {
+        const messageElement = document.createElement('div');
+
+        // 메시지 내용
+        const messageContent = document.createElement('div');
+        messageContent.className = "message-content p-3 rounded-lg";
+        messageContent.innerHTML = content;
+
+        // 메시지의 배경색과 스타일 설정
+        messageContent.style.backgroundColor = sender === 'User' ? '#cce4ff' : '#e0e0e0';  // 배경색 설정
+        messageContent.style.maxWidth = '70%';  // 최대 너비 70%로 설정
+        messageContent.style.wordWrap = 'break-word';  // 긴 단어가 잘리도록 처리
+        messageContent.style.display = 'block';  // 블록 요소로 설정하여 하나의 줄에 하나씩 표시되도록 함
+
+        // 닉네임 추가 (타인의 경우에만 닉네임 표시)
+        const nicknameElement = document.createElement('div');
+        nicknameElement.className = `${sender === 'User' ? '' : 'text-gray-600'} text-sm mb-1`;  // 닉네임 스타일
+        nicknameElement.innerHTML = sender !== 'User' ? sender : '';  // 유저가 아니면 닉네임 출력
+
+        // 타인의 프로필 사진 추가 (타인 메시지일 때만 표시)
+        const profilePicElement = document.createElement('img');
+        profilePicElement.src = '/img/characterPic/' + characterPic ;  // 타인의 프로필 사진 경로
+        profilePicElement.alt = 'CoverImage';
+        profilePicElement.style.width = '30px';  // 크기 설정
+        profilePicElement.style.height = '30px';  // 크기 설정
+        profilePicElement.style.borderRadius = '50%';  // 둥근 모양으로 설정
+        profilePicElement.style.marginRight = '8px';  // 닉네임과 간격을 위한 마진
+
+        // 메시지 부모 컨테이너 설정 (flexbox)
+        const messageContainer = document.createElement('div');
+        messageContainer.style.display = 'flex';
+        messageContainer.style.flexDirection = 'column';
+        messageContainer.style.alignItems = sender === 'User' ? 'flex-end' : 'flex-start';  // 'User'는 오른쪽, 다른 사람은 왼쪽
+
+        // 메시지 컨테이너에 닉네임과 프로필 사진 추가
+        if (sender !== 'User') {
+            const nicknameWithPic = document.createElement('div');
+            nicknameWithPic.style.display = 'flex';
+            nicknameWithPic.style.alignItems = 'center';
+            nicknameWithPic.appendChild(profilePicElement);  // 프로필 사진을 추가
+            nicknameWithPic.appendChild(nicknameElement);  // 닉네임을 추가
+            messageContainer.appendChild(nicknameWithPic);  // 닉네임과 프로필 사진을 한 번에 추가
+        }
+
+        // 그 다음 메시지 내용 추가
+        messageContainer.appendChild(messageContent);
+
+        // 메시지 컨테이너를 채팅 메시지 영역에 추가
+        chatMessages.appendChild(messageContainer);
+        chatMessages.scrollTop = chatMessages.scrollHeight;
+
+        return messageContainer; // messageContent를 반환
+    }
+
+</script>
+
+<script type="module">
+    import { voice_call } from "/js/tts.js";
+
+    const voiceCallButton = document.getElementById('voiceCallButton');
+    const hangUpButton = document.getElementById('hangUpButton');
+    const synth = window.speechSynthesis;
+
+    let recognition;
+    let timeout;
+    let isRecording = false;
+    let isRecognitionActive = false;
+    let isAudioPlaying = false;
+
+    voiceCallButton.addEventListener('click', () => {
+        if (!isRecording) {
+            startRecognition();  // 음성 인식 시작
+            document.getElementById('chat-form').style.display = 'none';
+            document.getElementById('chat-messages').style.display = 'none';
+            document.getElementById('hangUpButton').style.display = 'block';
+        }
+    })
+
+    hangUpButton.addEventListener('click', () => {
+        console.log("끊겟다니깐");
+        location.reload();
+    })
+
+    const languageSelect = document.getElementById('languageSelect');
+    languageSelect.addEventListener('change', () => {
+        console.log(`Language changed to: ${languageSelect.value}`);
+    });
+
+    const voiceSelect = document.getElementById('voiceSelect');
+    voiceSelect.addEventListener('change', () => {
+        console.log(`Voice model changed to: ${voiceSelect.value}`);
+    });
+
+    function startRecognition() {
+        if (!('SpeechRecognition' in window || 'webkitSpeechRecognition' in window)) {
+            alert('Speech recognition is not supported in this browser. Please use Google Chrome.');
+            return;
+        }
+
+        recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+        recognition.lang = languageSelect.value;
+
+        recognition.onstart = () => {
+            console.log('Speech recognition started...');
+            isRecording = true;
+        };
+
+        recognition.onresult = (event) => {
+            clearTimeout(timeout); // 타이머 초기화
+            console.log('STT Result:', event.results[0][0].transcript);
+
+            timeout = setTimeout(() => {
+                if (!isAudioPlaying) {
+                    startVoiceChat(event.results[0][0].transcript);  // 4초 동안 말하지 않으면 자동으로 시작
+                }
+            }, 2000); // 4초 대기
+        };
+
+        recognition.onend = (event) => {
+            console.log("recognition ended.");
+
+        }
+
+        recognition.onerror = (event) => {
+        };
+
+        // 음성 인식 시작
+        recognition.start();
+    }
+
+
+    async function startVoiceChat(botResponse) {
+        console.log('your voice has sent.');
+        const userSpeech = botResponse;
+        console.log('User said:', userSpeech);
+        addMessageToChat('User', userSpeech);
+        document.getElementById("loading-spinner").style.display = "block";
+        try {
+            const response = await fetchStreamWithRetry('/stream', {
+                message: userSpeech,
+                characterPrompt: characterPrompt,
+                cno: cno,
+                room_id: room_id,
+                userno: userno
+            });
+
+            const reader = response.body.getReader();
+            let botMessageElement = await addMessageToChat(characterName, '');
+            let contentElement = botMessageElement.querySelector('.message-content');
+
+            const fullResponse = await processStream(reader, contentElement);
+            console.log('Full response:', fullResponse);
+
+
+            await voice_call(voiceSelect, fullResponse);
+        } catch (error) {
+            console.error('Error fetching chatbot response:', error);
+            await addMessageToChat('System', 'An error occurred while fetching the response. Please try again.');
+        } finally {
+
+            startRecognition();
+        }
+
+        async function processStream(reader, contentElement) {
+            const decoder = new TextDecoder("utf-8");
+            let done = false;
+            let fullResponse = '';
+
+            while (!done) {
+                const {value, done: readerDone} = await reader.read();
+                done = readerDone;
+
+                if (value) {
+                    const chunk = decoder.decode(value, {stream: true});
+                    fullResponse += chunk;
+                    contentElement.innerText += chunk; // 화면에 텍스트 추가
+                }
+            }
+
+            return fullResponse.trim(); // 최종 텍스트 반환
+        }
+    }
+
+</script>
+</html>

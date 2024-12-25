@@ -1,0 +1,226 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"
+        integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo="
+        crossorigin="anonymous"></script>
+<!-- Tagify CSS -->
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tagify/4.0.0/tagify.min.css">
+<!-- jQuery -->
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"
+        integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo="
+        crossorigin="anonymous"></script>
+<!-- Tagify JavaScript -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/tagify/4.0.0/tagify.min.js"></script>
+<script type="text/javascript">
+    $(document).ready(function() {
+        // Initialize Tagify on the input element
+        var input = document.querySelector('input[name=nvtag_name]');
+        var tagify = new Tagify(input);
+
+        // File type validation and preview
+        $('#file').on('change', function () {
+            validateFileType(this);
+        });
+
+        function validateFileType(input) {
+            var file = input.files[0];
+            var allowedExtensions = ['jpg', 'jpeg', 'png', 'gif'];
+            var fileExtension = file.name.split('.').pop().toLowerCase();
+
+            if ($.inArray(fileExtension, allowedExtensions) === -1) {
+                alert('올바르지 않은 파일 형식입니다. jpg, jpeg, png, gif 파일만 가능합니다.');
+                input.value = '';  // 파일 입력 초기화
+            } else {
+                previewImage(input);
+            }
+        }
+
+        function previewImage(input) {
+            var file = input.files[0];
+            var reader = new FileReader();
+
+            reader.onload = function(e) {
+                $('#imagePreview').attr('src', e.target.result).show();  // 이미지 미리보기
+            }
+
+            reader.readAsDataURL(file);
+        }
+    });
+
+
+    function addNovel() {
+        var form = $('#nvAddForm')[0];
+        var data = new FormData(form);
+
+        // Get textarea value and replace newlines with '\n'
+        var nvDesc = data.get('nv_desc');
+        var updatedNvDesc = nvDesc.replace(/\r?\n/g, '<br>');
+        data.set('nv_desc', updatedNvDesc);
+
+        // Process Tagify data
+        var tagifyData = JSON.parse(data.get('nvtag_name'));
+        var tagNames = tagifyData.map(tag => tag.value);
+        data.set('nvtag_name', tagNames.join(','));
+
+        $('#nvUpload').prop('disabled', true);
+        $.ajax({
+            enctype: 'multipart/form-data',
+            url : '/novel/nvup',
+            method : 'POST',
+            cache : false,
+            data : data,
+            dataType : 'json',
+            processData: false,
+            contentType: false,
+            timeout: 600000,
+            success : function(res) {
+                if(res.uploaded) {
+                    alert('업로드 성공');
+                    location.href = '/novel/epup/' + res.nv_id;
+                } else {
+                    alert('업로드 실패');
+                }
+            },
+            error : function(xhr, status, err) {
+                alert('uperr: ' + err);
+                $('#nvUpload').prop('disabled', false);
+            }
+        });
+    }
+
+    function validateFileType(fileInput) {
+        const file = fileInput.files[0];
+        if (file) {
+            const fileType = file.type;
+            if (!fileType.startsWith('image/')) {
+                alert('Please upload a valid image file.');
+                fileInput.value = ''; // Clear the file input
+                return false;
+            }
+        }
+        return true;
+    }
+</script>
+<script src="jQuery.tagify.js"></script>
+<head>
+    <meta charset="UTF-8">
+    <title>novel upload form</title>
+</head>
+<style>
+    body {
+        font-family: Arial, sans-serif;
+        background-color: #f4f4f4;
+        margin: 0;
+        padding: 20px;
+    }
+
+    main {
+        background-color: #fff;
+        padding: 20px;
+        border-radius: 5px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        max-width: 600px;
+        margin: 0 auto;
+    }
+
+    h3 {
+        margin-top: 0;
+        color: #333;
+    }
+
+    label {
+        display: block;
+        margin-bottom: 5px;
+        font-weight: bold;
+    }
+
+    input[type="text"],
+    input[type="number"],
+    textarea,
+    input[type="file"] {
+        width: 100%;
+        padding: 8px;
+        margin-bottom: 10px;
+        border: 1px solid #ccc;
+        border-radius: 4px;
+    }
+
+    button {
+        background-color: #5cb85c;
+        color: white;
+        border: none;
+        padding: 10px 20px;
+        text-align: center;
+        text-decoration: none;
+        display: inline-block;
+        font-size: 16px;
+        margin: 4px 2px;
+        cursor: pointer;
+        border-radius: 4px;
+    }
+
+    button[type="reset"] {
+        background-color: #d9534f;
+    }
+
+    button:disabled {
+        background-color: #cccccc;
+        cursor: not-allowed;
+    }
+</style>
+<body>
+<main>
+    <h3>소설 업로드폼</h3>
+    <form id="nvAddForm" enctype="multipart/form-data">
+        <div>
+            <label for="is_Secret">작품종류 선택</label>
+            <select id="is_secret" name="is_secret">
+                <option value="0">무료연재</option>
+                <option value="1">비공개</option>
+                <option value="2">유료연재</option>
+            </select>
+        </div>
+
+        <div>
+            <label>성인물 여부</label><br>
+            <div style="display: flex; gap: 10px;">
+                <label>
+                    <input type="radio" id="notAdult" name="is_adult" value="0"> 전연령가
+                </label>
+                <label>
+                    <input type="radio" id="is_adult" name="is_adult" value="1"> 성인물
+                </label>
+            </div>
+        </div>
+
+        <div>
+            <label for="nvctg_name">카테고리 선택</label>
+            <select id="nvctg_name" name="nvctg_name">
+                <option th:each="category : ${categories}"
+                        th:value="${category}"
+                        th:text="${category}">
+                </option>
+            </select>
+        </div>
+
+        <div><label for="nv_title">작품명</label><input type="text" id="nv_title" name="nv_title" value="제목임"></div>
+        <div><label for="nv_desc">작품소개</label><textarea id="nv_desc" name="nv_desc"></textarea></div>
+
+        <div>
+            <label>태그 입력</label>
+            <input type="text" id="nvtag_name" name="nvtag_name" placeholder="write some tags">
+        </div><br>
+
+        <div>
+            <label>커버 이미지</label><br>
+            <input type="file" id="file" name="file" accept="image/*" required><br>
+            <img id="imagePreview" src="#" alt="이미지 미리보기"
+                 style="display:none; width: 200px; height: 300px; margin-top: 10px;">
+        </div>
+    </form>
+
+    <button type="reset">reset</button>
+    <button id="nvUpload" onclick="addNovel();">제출</button>
+</main>
+</body>
+</html>

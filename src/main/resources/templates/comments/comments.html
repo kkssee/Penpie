@@ -1,0 +1,294 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/thymeleaf-extras-springsecurity6" lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>Penpie - Comments</title>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="icon" href="data:;base64,iVBORw0KGgo=">
+    <style>
+        /* 드롭다운 버튼 스타일 */
+        .dropdown {
+            position: relative;
+            display: inline-block;
+        }
+
+        /* 버튼을 점 3개로 스타일링 */
+        .dropdown button {
+            background: none;
+            border: none;
+            font-size: 20px;
+            cursor: pointer;
+            padding: 0;
+            margin: 0;
+            color: #0056b3;
+        }
+
+        /* 드롭다운 내용 */
+        .dropdown-content {
+            display: none;
+            position: absolute;
+            background-color: #f9f9f9;
+            min-width: 160px;
+            box-shadow: 0px 8px 16px rgba(0,0,0,0.2);
+            z-index: 1;
+        }
+
+        /* 드롭다운 링크 스타일 */
+        .dropdown-content a {
+            color: black;
+            padding: 12px 16px;
+            text-decoration: none;
+            display: block;
+        }
+
+        .dropdown-content a:hover {
+            background-color: #f1f1f1;
+        }
+
+        /* 드롭다운 버튼을 클릭했을 때 보이도록 설정 */
+        .dropdown:hover .dropdown-content {
+            display: block;
+        }
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f9;
+            margin: 0;
+            padding: 20px;
+        }
+
+        main {
+            width: 60%;
+            margin: 0 auto;
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        h3 {
+            text-align: center;
+            color: #333;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+
+        th, td {
+            padding: 10px;
+            text-align: left;
+        }
+
+        th {
+            background-color: #f8f8f8;
+            color: #333;
+        }
+
+        tr:nth-child(even) {
+            background-color: #f4f4f4;
+        }
+
+        textarea {
+            width: 100%;
+            padding: 10px;
+            border-radius: 4px;
+            border: 1px solid #ddd;
+            margin-bottom: 10px;
+            font-size: 14px;
+        }
+
+        button {
+            padding: 10px 20px;
+            background-color: #5cb85c;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #4cae4c;
+        }
+
+
+        .comment-item h4 {
+            margin: 0;
+            font-size: 14px;
+            color: #333;
+        }
+
+        .comment-item p {
+            margin: 5px 0;
+            font-size: 13px;
+            color: #666;
+        }
+
+
+    </style>
+    <script>
+        $(document).ready(function() {
+            $('#commentAddForm').submit(function(event) {
+                event.preventDefault();
+                var formData = $(this).serialize();
+                $.ajax({
+                    url: '/novel/comment',
+                    method: 'POST',
+                    data: formData,
+                    success: function(res) {
+                        if (res.added) {
+                            location.reload();
+                        } else {
+                            alert('댓글 추가 실패');
+                        }
+                    },
+                    error: function(xhr, status, err) {
+                        alert('댓글 추가에 실패했습니다.');
+                    }
+                });
+            });
+
+            $(document).on('click', '.like-btn', function() {
+                const commentId = $(this).data('id');
+                const liked = $(this).data('liked');
+                $.ajax({
+                    url: '/novel/like',
+                    method: 'POST',
+                    data: {
+                        comment_id: commentId,
+                        liked: liked
+                    },
+                    success: function(response) {
+                        if (response.success) {
+                            const button = $(`button[data-id="${commentId}"]`);
+                            button.text(response.liked ? '좋아요 취소' : '좋아요');
+                            button.data('liked', response.liked);
+                            location.reload();
+                        } else {
+                            alert('좋아요 처리에 실패했습니다.');
+                        }
+                    },
+                    error: function(xhr, status, err) {
+                        alert('좋아요 처리에 실패했습니다.');
+                    }
+                });
+            });
+
+            $(document).on('click', '.delete-btn', function(event) {
+                event.preventDefault(); // 기본 링크 동작 방지
+                const commentId = $(this).data('id'); // 삭제할 댓글의 ID
+                const confirmed = confirm('Sure?'); // 확인 창
+                if (confirmed) {
+                    $.ajax({
+                        url: '/novel/delComment', // 서버의 삭제 엔드포인트
+                        method: 'DELETE', // 삭제 메소드
+                        data: $.param({ commentId: commentId }), // 쿼리 파라미터로 전달
+                        contentType: 'application/x-www-form-urlencoded', // 콘텐츠 타입 설정
+                        success: function(res) {
+                            if (res.deleted) {
+                                alert('댓글이 삭제되었습니다.');
+                                location.reload(); // 페이지 새로고침하여 댓글 목록 갱신
+                            } else {
+                                alert('댓글 삭제 실패');
+                            }
+                        },
+                        error: function(xhr, status, err) {
+                            console.error(xhr.responseText); // 에러 메시지 확인
+                            alert('댓글 삭제에 실패했습니다.');
+                        }
+                    });
+                }
+            });
+
+
+
+
+            $(document).on('click', '.block-btn', function(event) {
+                event.preventDefault();
+                const commentId = $(this).data('id');
+                alert('차단 클릭됨: ' + commentId);
+            });
+
+            $(document).on('click', '.report-btn', function(event) {
+                event.preventDefault();
+                const commentId = $(this).data('id');
+                alert('신고 클릭됨: ' + commentId);
+            });
+        });
+
+        window.onload = function() {
+            const commentId = window.location.hash.substring(1); // URL의 해시 부분 추출 (예: #comment-123)
+            if (commentId) {
+                const commentElement = document.getElementById(commentId);
+                if (commentElement) {
+                    commentElement.scrollIntoView({ behavior: 'smooth' }); // 해당 댓글로 스크롤
+                }
+            }
+        };
+    </script>
+</head>
+<body>
+<main>
+    <h3>댓글창 ([[${commentCount}]])</h3>
+    <div>
+        <table>
+
+            <tr>
+                <th>작성자</th>
+                <th>댓글내용</th>
+                <th>생성일자</th>
+                <th>기능</th>
+                <th>좋아요</th>
+                <th>답글</th>
+            </tr>
+
+            <tr th:each="co : ${comments}">
+                <td><a th:href="@{|/profile/${co.userno}|}">[[${co.nickname}]]</a></td>
+                <td th:text="${co.commentContents}"></td>
+                <td th:text="${#dates.format(co.createdAt, 'yyyy-MM-dd HH:mm:ss')}"></td>
+                <td>
+                    <div class="dropdown">
+                        <button>...</button> <!-- 점 3개로 표시된 버튼 -->
+                        <div class="dropdown-content">
+
+                            <a href="#" class="delete-btn" th:data-id="${co.commentId}">삭제</a>
+                            <a href="#" class="block-btn" data-id="[[${co.comment_id}]]">차단</a>
+                            <a href="#" class="report-btn" data-id="[[${co.comment_id}]]">신고</a>
+                        </div>
+                    </div>
+                </td>
+                <td>
+                    <button class="like-btn"
+                            th:data-id="${co.commentId}"
+                            th:data-liked="${co.isLiked}">
+                        <span th:text="${co.isLiked == 1 ? '좋아요 취소' : '좋아요'}"></span>
+                    </button>
+                    <span th:text="${co.likeCount}"></span>
+                </td>
+                <td><a th:href="@{|/novel/reply/${co.commentId}|}">
+                    <button type="button">
+                        답글
+                        <span th:if="${co.replyCount > 0}" th:text="${co.replyCount}"></span>
+                    </button>
+                    </a>
+                </td>
+            </tr>
+        </table>
+    </div><br>
+
+    <!-- 댓글 입력 폼 -->
+    <form id="commentAddForm" method="post" th:object="${comment}">
+        <input type="hidden" id="ep_id" name="ep_id" th:field="*{epId}"> <!-- 에피소드 ID 서버 값 사용 -->
+        <textarea id="comment_contents" name="comment_contents" th:field="*{commentContents}" placeholder="댓글을 입력하세요..." rows="4" cols="50"></textarea><br>
+        <button type="submit">댓글달기</button>
+    </form>
+
+    <p>
+        <a th:href="@{/novel/list}"><button>소설 목록</button></a>
+    </p>
+</main>
+</body>
+</html>

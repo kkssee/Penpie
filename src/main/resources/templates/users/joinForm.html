@@ -1,0 +1,74 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>회원가입</title>
+    <link rel="stylesheet" href="/css/styles.css">
+</head>
+<body>
+<div class="container">
+    <nav>
+        <ul>
+            <!-- Homepage Button -->
+            <li><a href="/" th:href="@{/}">홈페이지</a></li>
+        </ul>
+    </nav>
+    <h2>회원가입</h2>
+    <form action="/join" method="post" th:object="${userVO}">
+        <!-- USERID -->
+        <div class="form-group">
+            <label for="userid">아이디</label>
+            <input type="text" id="userid" name="userid" th:field="*{userid}" required placeholder="아이디를 입력하세요" maxlength="50">
+        </div>
+
+        <!-- PASSWORD -->
+        <div class="form-group">
+            <label for="password">비밀번호</label>
+            <input type="password" id="password" name="password" th:field="*{password}" required placeholder="비밀번호를 입력하세요" maxlength="50">
+        </div>
+
+        <!-- USERNAME -->
+        <div class="form-group">
+            <label for="username">본명</label>
+            <input type="text" id="username" name="username" th:field="*{username}" required placeholder="이름을 입력하세요" maxlength="20">
+        </div>
+
+        <!-- NICKNAME -->
+        <div class="form-group">
+            <label for="nickname">닉네임</label>
+            <input type="text" id="nickname" name="nickname" th:field="*{nickname}" required placeholder="닉네임을 입력하세요" maxlength="50">
+        </div>
+
+        <!-- GENDER -->
+        <div class="form-group">
+            <label for="gender">성별</label>
+            <select id="gender" name="gender" th:field="*{gender}" required>
+                <option value="0" th:selected="*{gender == 0}">여성</option>
+                <option value="1" th:selected="*{gender == 1}">남성</option>
+            </select>
+        </div>
+
+        <!-- BIRTH -->
+        <div class="form-group">
+            <label for="birth">생년월일</label>
+            <input type="date" id="birth" name="birth" th:field="*{birth}" required>
+        </div>
+
+        <!-- CONTACT -->
+        <div class="form-group">
+            <label for="contact">연락처</label>
+            <input type="text" id="contact" name="contact" th:field="*{contact}" required placeholder="연락처를 입력하세요" maxlength="50">
+        </div>
+
+        <!-- EMAIL -->
+        <div class="form-group">
+            <label for="email">이메일</label>
+            <input type="email" id="email" name="email" th:field="*{email}" required placeholder="이메일을 입력하세요" maxlength="100">
+        </div>
+
+        <button type="submit" class="btn">회원가입</button>
+    </form>
+</div>
+</body>
+</html>

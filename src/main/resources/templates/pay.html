@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8"/>
+    <title>Sample Payment</title>
+    <!-- jQuery -->
+    <script type="text/javascript" src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <!-- iamport.payment.js -->
+    <script type="text/javascript" src="https://cdn.iamport.kr/js/iamport.payment-1.1.5.js"></script>
+    <style>
+        body {
+            font-family: 'Arial', sans-serif;
+            background-color: #f4f4f4;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 20px;
+            background-color: #fff;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        h2 {
+            text-align: center;
+            color: #ff9a00;
+        }
+
+        .balance-section p {
+            font-size: 18px;
+            text-align: center;
+            margin-bottom: 30px;
+        }
+
+        .package-section h3 {
+            font-size: 24px;
+            text-align: center;
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        .package {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+            gap: 20px;
+        }
+
+        .package-item {
+            background-color: #fff;
+            padding: 15px;
+            border: 2px solid #ff9a00;
+            border-radius: 10px;
+            text-align: center;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+        }
+
+        .package-item span {
+            display: block;
+            font-size: 18px;
+            margin-bottom: 10px;
+            color: #333;
+        }
+
+        .price {
+            font-weight: bold;
+            color: #ff9a00;
+            font-size: 20px;
+            margin-bottom: 20px;
+        }
+
+        .point-button {
+            padding: 10px 15px;
+            font-size: 16px;
+            background-color: #ff9a00;
+            color: #fff;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            transition: background-color 0.3s, transform 0.3s;
+        }
+
+        .point-button:hover {
+            background-color: #e68900;
+            transform: scale(1.05);
+        }
+
+        .point-button:active {
+            transform: scale(0.95);
+        }
+    </style>
+
+    <script>
+
+
+        function requestPay(amount) {
+            IMP.init("imp54723837");
+            IMP.request_pay(
+                {
+                    pg: 'html5_inicis',
+                    pay_method: "card",
+                    name: "PenPie",
+                    amount: amount,
+                    buyer_email: "gildong@gmail.com",
+                    buyer_name: "홍길동",
+                    buyer_tel: "010-4242-4242",
+                    buyer_addr: "서울특별시 강남구 신사동",
+                    buyer_postcode: "01181"
+                },
+                function (rsp) {
+                    console.log(rsp);
+                    $.ajax({
+                        type: 'POST',
+                        url: '/pp/verify/' + rsp.imp_uid
+                    }).done(function(data) {
+                        console.log(data);
+                        if (rsp.paid_amount === data.response.amount) {
+                            alert("imp_uid: " + data.imp_uid + " merchant_uid(orderKey) :" + data.merchant_uid);
+                            alert("결제 및 결제검증완료");
+                        } else {
+                            alert("결제 실패");
+                        }
+                    });
+                });
+        }
+
+        function cancelPay() {
+            jQuery.ajax({
+                url: "/cancel",
+                type: "POST",
+                contentType: "application/json",
+                data: JSON.stringify({
+                    merchant_uid: "nobody_1726727312546",
+                    cancel_request_amount:0,
+                    reason: "테스트 결제 환불"
+                }),
+                dataType: "json",
+                success: function(response) {
+                    console.log("환불 성공", response);
+                },
+                error: function(xhr, status, error) {
+                    console.error("환불 실패", error);
+                }
+            });
+        }
+    </script>
+</head>
+<body>
+<div class="container">
+    <div class="balance-section">
+        <h2>My Pie Stand</h2>
+        <p>Current Pie Balance: <strong>[[${point}]]</strong> Pie slices</p>
+    </div>
+
+    <div class="package-section">
+        <h3>Pie Packages</h3>
+        <div class="package">
+            <div class="package-item">
+                <span>Just a slice</span>
+                <span class="price">100</span>
+                <button class="point-button" onclick="requestPay(100)">Buy</button>
+            </div>
+            <div class="package-item">
+                <span>10 Slices</span>
+                <span class="price">1,000</span>
+                <button class="point-button" onclick="requestPay(1000)">Buy</button>
+            </div>
+            <div class="package-item">
+                <span>30 Slices</span>
+                <span class="price">3,000</span>
+                <button class="point-button" onclick="requestPay(3000)">Buy</button>
+            </div>
+            <div class="package-item">
+                <span>50 Slices</span>
+                <span class="price">5,000</span>
+                <button class="point-button" onclick="requestPay(5000)">Buy</button>
+            </div>
+            <div class="package-item">
+                <span>100 Slices</span>
+                <span class="price">10,000</span>
+                <button class="point-button" onclick="requestPay(10000)">Buy</button>
+            </div>
+            <div class="package-item">
+                <span>200 Slices</span>
+                <span class="price">20,000</span>
+                <button class="point-button" onclick="requestPay(20000)">Buy</button>
+            </div>
+        </div>
+    </div>
+
+    <div class="button-container" style="display: none">
+        <button class="point-button cancel-btn" onclick="cancelPay()">결제 취소</button>
+    </div>
+</div>
+</body>
+</html>

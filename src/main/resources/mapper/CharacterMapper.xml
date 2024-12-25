@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.test.character.CharacterMapper">
+    <insert id="createCharacter" parameterType="com.test.character.CharacterVO" useGeneratedKeys="true" keyProperty="cno" keyColumn="cno">
+        INSERT INTO characters (cno, makerNo, characterName, characterDesc, characterPrompt, relationships, characterVisibility, characterPic, updated_at, enabled)
+        VALUES (CHARACTER_SEQ.NEXTVAL, #{makerNo}, #{characterName}, #{characterDesc}, #{characterPrompt}, #{relationships}, #{characterVisibility}, #{characterPic}, SYSDATE, 1)
+    </insert>
+
+    <select id="getList" resultType="com.test.character.CharacterVO">
+        SELECT * FROM characters
+        WHERE characterVisibility = 0 AND enabled = 1
+        order by updated_at DESC
+    </select>
+
+    <select id="getCharacter" parameterType="Long" resultType="com.test.character.CharacterVO">
+        SELECT * FROM characters WHERE cno = #{cno}
+    </select>
+
+    <select id="getRoomId" parameterType="com.test.character.CharacterVO" resultType="Long">
+        SELECT room_id FROM character_chatroom
+                 WHERE userno = #{userno} AND cno = #{cno}
+    </select>
+    <insert id="createRoomId" parameterType="com.test.character.CharacterChatRoomVO" useGeneratedKeys="true" keyProperty="room_id" keyColumn="room_id">
+        INSERT INTO character_chatroom (room_id, userno, cno)
+        VALUES (CHARACTER_ROOM_SEQ.NEXTVAL, #{userno}, #{cno})
+    </insert>
+
+    <select id="getMemory" parameterType="Long" resultType="String">
+        SELECT memory FROM character_chatroom
+            WHERE room_id = #{room_id}
+    </select>
+
+    <select id="getChatHistory" parameterType="Long" resultType="com.test.character.CharacterChatVO">
+        SELECT message_id, room_id, sender, message, is_read FROM character_chat
+            WHERE room_id = #{room_id}
+            ORDER BY timestamp
+    </select>
+
+    <insert id="saveChat" parameterType="com.test.character.CharacterChatVO" useGeneratedKeys="true" keyProperty="message_id" keyColumn="message_id">
+        INSERT INTO character_chat (message_id, room_id, sender, message, timestamp, is_read)
+        VALUES (CHARACTER_CHAT_SEQ.NEXTVAL, #{room_id}, #{sender}, #{message}, SYSDATE, 1)
+    </insert>
+
+    <insert id="uploadVoice" parameterType="com.test.character.VoiceVO" useGeneratedKeys="true" keyProperty="vno" keyColumn="vno">
+        INSERT INTO voices (vno, actorNo, voiceName, voiceDesc, refText, voicePath, voiceVisibility)
+        VALUES (VOICE_SEQ.NEXTVAL, #{actorNo}, #{voiceName}, #{voiceDesc}, #{refText}, #{voicePath}, #{voiceVisibility})
+    </insert>
+
+    <select id="getVoice" parameterType="Long" resultType="com.test.character.VoiceVO">
+        SELECT v.*
+            FROM voices v
+                 JOIN character_chatroom cc ON cc.vno = v.vno
+        WHERE cc.room_id = #{room_id}
+    </select>
+
+    <select id="getVoiceList" resultType="com.test.character.VoiceVO">
+        SELECT * FROM voices
+    </select>
+</mapper>

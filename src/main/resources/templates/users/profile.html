@@ -1,0 +1,611 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/thymeleaf-extras-springsecurity6" lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>User Profile</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/routekick/calmosaic@2.1.0/dist/jquery.calmosaic.min.css" />
+    <link rel="icon" href="data:;base64,iVBORw0KGgo=">
+
+    <style>
+        /* 공통 스타일 */
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center; /* 수직 중앙 정렬 */
+        }
+
+        .novel-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 20px;
+            padding: 20px;
+        }
+
+        .novel-card {
+            width: 200px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            transition: transform 0.2s;
+            text-align: center;
+            padding: 15px;
+        }
+
+        .novel-card:hover {
+            transform: scale(1.05);
+        }
+
+        .novel-card img {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+        }
+
+        .novel-title {
+            font-size: 16px;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+
+        .novel-author {
+            color: #555;
+            font-size: 14px;
+            margin-bottom: 10px;
+        }
+
+        .stats {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 10px;
+            align-items: center;
+            margin-top: 10px;
+        }
+        .stats i {
+            color: #BCC6D0; /* 아이콘 색깔을 지정 */
+        }
+
+        .stats div {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .stats .count {
+            color: #333;
+            font-size: 14px;
+        }
+        h1 {
+            text-align: center; /* 텍스트 중앙 정렬 */
+            margin: 20px 0; /* 상하 여백 */
+        }
+        /* 탭 스타일 */
+        .tabs {
+            display: flex;
+            cursor: pointer;
+            justify-content: center; /* 탭 버튼 중앙 정렬 */
+            margin-bottom: 20px; /* 탭과 콘텐츠 사이의 여백 */
+        }
+
+        .tab-button {
+            padding: 10px;
+            margin-right: 5px;
+            background-color: #f1f1f1;
+            border: 1px solid #ccc;
+            border-radius: 5px 5px 0 0;
+        }
+
+        .tab-button.active {
+            background-color: #ddd;
+            font-weight: bold;
+        }
+
+        .tab-content {
+            display: none;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-top: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* 댓글 테이블 스타일 */
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-bottom: 20px;
+        }
+
+        th, td {
+            padding: 10px;
+            text-align: left;
+            border-bottom: 1px solid #ddd; /* 테두리 추가 */
+        }
+
+        th {
+            background-color: #f8f8f8;
+            color: #333;
+        }
+
+        tr:nth-child(even) {
+            background-color: #f4f4f4; /* 홀수와 짝수 행 배경색 */
+        }
+
+        /* 댓글 아이템 스타일 */
+        .comment-item {
+            margin-bottom: 15px;
+            padding: 10px;
+            border: 1px solid #ddd; /* 댓글 외곽선 */
+            border-radius: 5px;
+            background-color: #fff; /* 댓글 배경색 */
+            box-shadow: 0 2px 5px rgba(0, 0, 0, 0.1); /* 그림자 효과 */
+        }
+
+        .comment-item h4 {
+            margin: 0;
+            font-size: 14px;
+            color: #333;
+        }
+
+        .comment-item p {
+            margin: 5px 0;
+            font-size: 13px;
+            color: #666;
+        }
+
+        /* 좋아요 버튼 스타일 */
+        .like-btn {
+            padding: 5px 10px;
+            background-color: #5cb85c;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .like-btn:hover {
+            background-color: #4cae4c; /* hover 시 색상 변화 */
+        }
+
+        /* 드롭다운 버튼 스타일 */
+        .dropdown {
+            position: relative;
+            display: inline-block;
+        }
+
+        /* 버튼을 점 3개로 스타일링 */
+        .dropdown button {
+            background: none;
+            border: none;
+            font-size: 20px;
+            cursor: pointer;
+            padding: 0;
+            margin: 0;
+            color: #0056b3;
+        }
+
+        /* 드롭다운 내용 */
+        .dropdown-content {
+            display: none;
+            position: absolute;
+            background-color: #f9f9f9;
+            min-width: 160px;
+            box-shadow: 0px 8px 16px rgba(0,0,0,0.2);
+            z-index: 1;
+        }
+
+        /* 드롭다운 링크 스타일 */
+        .dropdown-content a {
+            color: black;
+            padding: 12px 16px;
+            text-decoration: none;
+            display: block;
+        }
+
+        .dropdown-content a:hover {
+            background-color: #f1f1f1;
+        }
+
+        /* 드롭다운 버튼을 클릭했을 때 보이도록 설정 */
+        .dropdown:hover .dropdown-content {
+            display: block;
+        }
+
+        .like-btn {
+            color: #fff;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        .like-btn:hover {
+            color: white;
+            background: none;
+        }
+
+        .icon-button {
+            border: none;
+            background: none;
+            cursor: pointer;
+            font-size: 20px;
+            color: #000001; /* 기본 아이콘 색상 */
+        }
+
+        .icon-button .fas.fa-heart { /* 채워진 하트일 경우 */
+            color: red; /* 하트 내부 색상 */
+        }
+
+        .icon-button .far.fa-heart { /* 빈 하트일 경우 */
+            color: black; /*기본 빈 하트 색상 */
+        }
+
+        .icon-button:hover .fas.fa-heart { /* 채워진 하트 hover 시 */
+            color: #ff4d4d; /* 더 밝은 빨간색 */
+        }
+
+        .icon-button:hover .far.fa-heart { /* 빈 하트 hover 시 */
+            color: black; /* 호버 시 빈 하트 색상 변경 */
+        }
+
+        /* 클릭 시 하트에 적용할 애니메이션 효과 */
+        .heart-animation {
+            animation: pulse 0.5s ease-in-out; /* 애니메이션 효과 */
+        }
+
+        /* 하트가 커졌다가 작아지는 효과 */
+        @keyframes pulse {
+            0% {
+                transform: scale(1); /* 원래 크기 */
+            }
+            50% {
+                transform: scale(1.2); /* 1.2배 크기 */
+            }
+            100% {
+                transform: scale(1); /* 다시 원래 크기로 */
+            }
+        }
+        .profile-container {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 20px; /* 프로필 이미지와 다른 요소 간의 간격 */
+        }
+
+        .profile-img {
+            width: 150px; /* 원하는 이미지 크기 */
+            height: 150px; /* 1:1 비율 유지 */
+            object-fit: cover; /* 이미지가 원형에 맞게 잘리도록 설정 */
+            border-radius: 50%; /* 원형으로 만들기 */
+            border: 2px solid #ddd; /* 외곽선 */
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* 그림자 효과 */
+        }
+
+    </style>
+
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"
+            integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo="
+            crossorigin="anonymous"></script>
+    <!-- Add it after jQuery and Moment.js libraries  -->
+    <script src="https://cdn.jsdelivr.net/gh/routekick/calmosaic@2.1.0/dist/jquery.calmosaic.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/jquery@3.3.1/dist/jquery.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/moment@2.24.0/moment.min.js"></script>
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            var tabs = document.querySelectorAll('.tab-button');
+            var contents = document.querySelectorAll('.tab-content');
+
+            tabs.forEach(function(tab) {
+                tab.addEventListener('click', function() {
+                    tabs.forEach(function(t) { t.classList.remove('active'); });
+                    contents.forEach(function(c) { c.classList.remove('active'); });
+
+                    tab.classList.add('active');
+                    document.getElementById(tab.getAttribute('data-tab')).classList.add('active');
+                });
+            });
+            tabs[0].click();
+        });
+
+
+        $(document).ready(function() {
+            $(document).on('click', '.subscribe-btn', function () {
+                const authorno = $(this).data('id');
+                const subscribed = $(this).data('subscribed');
+                $.ajax({
+                    url: '/subscribeAuthor',
+                    method: 'POST',
+                    data: {
+                        authorno: authorno,
+                        subscribed: subscribed
+                    },
+                    success: function (response) {
+                        if (response.success) {
+                            const button = $(`button[data-id="${authorno}"]`);
+                            button.text(response.liked ? 'Unfollow' : 'Follow');
+                            button.data('subscribed', response.subscribed);
+                            location.reload();
+                        } else {
+                            alert('Failed. Please try later.');
+                        }
+                    },
+                    error: function (xhr, status, err) {
+                        alert('Failed. Please try later.');
+                    }
+                });
+            });
+        });
+    </script>
+</head>
+<body>
+<div>
+    <div class="profile-container">
+        <img class="profile-img" th:src="${profileImg} != null ? '/img/profileImg/' + ${profileImg} : '/img/profileImg/defaultProfilePic.jpg'" alt="Profile Image">
+    </div>
+    <div th:text="${nickname}"></div>
+    <div th:if="${userno != viewerUserNo}">
+        <form th:action="@{/ws/in/{receiver}(receiver=${userno})}" method="get"
+              th:if="${userno != viewerUserNo}">
+            <button type="submit">Chat</button>
+        </form>
+        <button class="icon-button subscribe-btn"
+                th:data-id="${userno}"
+                th:data-subscribed="${uv.isSubscribed}">
+            <span th:text="${uv.isSubscribed == 1 ? 'Unfollow' : 'Follow'}"></span>
+        </button>
+    </div>
+    <div th:if="${userno == viewerUserNo}">
+        <form th:action="@{|/editProfile/${userno}|}" method="get">
+            <button type="submit">Edit Profile</button>
+        </form>
+    </div>
+    <div>
+        <a th:href="@{|/followList/${userno}?tab=follower|}">
+            [[${uv.subscribeCount}]] followers
+        </a> ·
+        <a th:href="@{|/followList/${userno}?tab=following|}">
+            [[${followingCount}]] following
+        </a>
+    </div>
+
+
+
+</div>
+<div class="tabs">
+    <div class="tab-button" data-tab="authoredNovelsTab">Works</div>
+    <div class="tab-button" data-tab="subscribedNovelsTab">Subscribed novels</div>
+    <div class="tab-button" data-tab="userCommentsTab">Comments</div>
+</div>
+
+<div id="subscribedNovelsTab" class="tab-content">
+    <div class="novel-container">
+        <div class="novel-card" th:each="nv : ${subscribedNovels}">
+            <img th:src="@{'/img/cover/' + ${nv.cover_path}}" alt="NovelThumbnail">
+            <div class="novel-title">
+                <a th:href="|/novel/detail/${nv.nv_id}/episodes|">[[${nv.nv_title}]]</a>
+            </div>
+            <div class="novel-author">[[${nv.nickname}]]</div>
+            <div class="stats">
+                <div>
+                    <i th:class="${nv.isSubscribed == 1 ? 'fas fa-star' : 'far fa-star'}"></i>
+                    <span class="count" th:text="${nv.subscribeCount}"></span>
+                </div>
+                <div>
+                    <i class="far fa-user"></i>
+                    <span class="count" th:text="${nv.totalViews}"></span>
+                </div>
+                <div>
+                    <i class="far fa-heart"></i>
+                    <span class="count" th:text="${nv.likeCount}"></span>
+                </div>
+                <div>
+                    <i class="far fa-comment"></i>
+                    <span class="count" th:text="${nv.commentCount}"></span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div id="authoredNovelsTab" class="tab-content">
+    <div class="novel-container">
+        <div class="novel-card" th:each="nv : ${authoredNovels}">
+            <img th:src="@{'/img/cover/' + ${nv.cover_path}}" alt="커버 이미지">
+            <div class="novel-title">
+                <a th:href="|/novel/detail/${nv.nv_id}/episodes|">[[${nv.nv_title}]]</a>
+            </div>
+            <div class="novel-author">[[${nv.nickname}]]</div>
+            <div class="stats">
+                <div>
+                    <i th:class="${nv.isSubscribed == 1 ? 'fas fa-star' : 'far fa-star'}"></i>
+                    <span class="count" th:text="${nv.subscribeCount}"></span>
+                </div>
+                <div>
+                    <i class="far fa-user"></i>
+                    <span class="count" th:text="${nv.totalViews}"></span>
+                </div>
+                <div>
+                    <i class="far fa-heart"></i>
+                    <span class="count" th:text="${nv.likeCount}"></span>
+                </div>
+                <div>
+                    <i class="far fa-comment"></i>
+                    <span class="count" th:text="${nv.commentCount}"></span>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+<div id="userCommentsTab" class="tab-content">
+    <div>
+        <table>
+
+            <tr>
+                <th>작성자</th>
+                <th>댓글내용</th>
+                <th>생성일자</th>
+                <th>기능</th>
+                <th>좋아요</th>
+            </tr>
+
+            <tr th:each="co : ${userComments}" >
+                <td th:text="${co.nickname}"></td>
+                <td th:text="${co.commentContents}"></td>
+                <td th:text="${#dates.format(co.createdAt, 'yyyy-MM-dd HH:mm')}"></td>
+                <td>
+                    <div class="dropdown">
+                        <button>...</button> <!-- 점 3개로 표시된 버튼 -->
+                        <!-- 드롭다운 부분 예시 -->
+                        <div class="dropdown-content">
+                            <a href="#" class="block-btn" data-id="[[${co.comment_id}]]"
+                               th:if="${viewerUser != co.userId}">차단</a>
+                            <a href="#" class="report-btn" data-id="[[${co.comment_id}]]"
+                               th:if="${viewerUser != co.userId}">신고</a>
+                            <!-- 댓글 작성자에게만 삭제 버튼 보이기 -->
+                            <a href="#" class="delete-btn" th:data-id="${co.commentId}"
+                               th:if="${viewerUser == co.userId}">삭제</a>
+                        </div>
+                    </div>
+                </td>
+                <td>
+                    <button class="icon-button like-btn"
+                            th:data-id="${co.commentId}"
+                            th:data-liked="${co.isLiked}">
+                        <i th:classappend="${co.isLiked == 1 ? 'fas fa-heart' : 'far fa-heart'}"></i>
+                    </button>
+                    <span th:text="${co.likeCount}"></span>
+                </td>
+                <td>
+                <td>
+                    <a th:href="@{|/novel/comments/${co.epId}#comment-${co.commentId}|}"
+                       th:if="${co.parentCommentId == 0}">
+                        <button type="button">댓글로 이동</button>
+                    </a>
+
+                    <a th:href="@{|/novel/reply/${co.parentCommentId}#comment-${co.commentId}|}"
+                       th:if="${co.parentCommentId != 0}">
+                        <button type="button">답글로 이동</button>
+                    </a>
+                </td>
+
+                </td>
+            </tr>
+        </table>
+    </div><br>
+</div>
+<a href="/" th:href="@{/}"><button>Back to home</button></a>
+</body>
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"
+        integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo="
+        crossorigin="anonymous"></script>
+<script>
+    // 하트 버튼 클릭 시 애니메이션 적용
+    document.querySelectorAll('.icon-button').forEach(button => {
+        button.addEventListener('click', function() {
+            const heartIcon = this.querySelector('.fa-heart');
+            heartIcon.classList.add('heart-animation'); // 애니메이션 클래스 추가
+
+            // 애니메이션이 끝나면 클래스 제거
+            setTimeout(() => {
+                heartIcon.classList.remove('heart-animation');
+            }, 500); // 애니메이션 지속 시간과 같아야 함
+        });
+    });
+
+    $(document).ready(function() {
+        $('#commentAddForm').submit(function(event) {
+            event.preventDefault();
+            var formData = $(this).serialize();
+            $.ajax({
+                url: '/novel/comment',
+                method: 'POST',
+                data: formData,
+                success: function(res) {
+                    if (res.added) {
+                        location.reload();
+                    } else {
+                        alert('댓글 추가 실패');
+                    }
+                },
+                error: function(xhr, status, err) {
+                    alert('댓글 추가에 실패했습니다.');
+                }
+            });
+        });
+
+        $(document).on('click', '.like-btn', function() {
+            const commentId = $(this).data('id');
+            const liked = $(this).data('liked');
+            $.ajax({
+                url: '/novel/like',
+                method: 'POST',
+                data: {
+                    comment_id: commentId,
+                    liked: liked
+                },
+                success: function(response) {
+                    if (response.success) {
+                        const button = $(`button[data-id="${commentId}"]`);
+                        button.data('liked', response.liked);
+                        location.reload();
+                    } else {
+                        alert('좋아요 처리에 실패했습니다.');
+                    }
+                },
+                error: function(xhr, status, err) {
+                    alert('좋아요 처리에 실패했습니다.');
+                }
+            });
+        });
+
+        $(document).on('click', '.delete-btn', function(event) {
+            event.preventDefault(); // 기본 링크 동작 방지
+            const commentId = $(this).data('id'); // 삭제할 댓글의 ID
+            const confirmed = confirm('정말로 이 댓글을 삭제하시겠습니까?'); // 확인 창
+            if (confirmed) {
+                $.ajax({
+                    url: '/novel/delComment', // 서버의 삭제 엔드포인트
+                    method: 'DELETE', // 삭제 메소드
+                    data: $.param({ commentId: commentId }), // 쿼리 파라미터로 전달
+                    contentType: 'application/x-www-form-urlencoded', // 콘텐츠 타입 설정
+                    success: function(res) {
+                        if (res.deleted) {
+                            alert('댓글이 삭제되었습니다.');
+                            location.reload(); // 페이지 새로고침하여 댓글 목록 갱신
+                        } else {
+                            alert('댓글 삭제 실패');
+                        }
+                    },
+                    error: function(xhr, status, err) {
+                        console.error(xhr.responseText); // 에러 메시지 확인
+                        alert('댓글 삭제에 실패했습니다.');
+                    }
+                });
+            }
+        });
+
+
+
+
+        $(document).on('click', '.block-btn', function(event) {
+            event.preventDefault();
+            const commentId = $(this).data('id');
+            alert('차단 클릭됨: ' + commentId);
+        });
+
+        $(document).on('click', '.report-btn', function(event) {
+            event.preventDefault();
+            const commentId = $(this).data('id');
+            alert('신고 클릭됨: ' + commentId);
+        });
+    });
+</script>
+</html>

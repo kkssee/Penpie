@@ -1,0 +1,215 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/thymeleaf-extras-springsecurity6" lang="en">
+<head>
+    <title>SearchForm</title>
+    <meta charset="UTF-8" />
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"
+            integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo="
+            crossorigin="anonymous"></script>
+
+    <!-- Sidebar -->
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+
+    <!-- stylesheet -->
+    <link rel="stylesheet" th:href="@{/css/sidebar.css}">
+    <link rel="stylesheet" th:href="@{/css/searchForm.css}">
+</head>
+<body>
+    <div th:insert="~{fragments/sidebar :: sidebar}"></div>
+    <form action="/search/novel" method="GET">
+        <div class="autocomplete-container">
+            <button id="homeBtn"><i class="icon ph-bold ph-caret-left"></i></button>
+            <label for="keyword"></label>
+            <input type="text" id="keyword" name="keyword" autocomplete="off" onkeydown="checkEnter(event)" placeholder="Penpie novel search">
+            <div class="dropdown" id="suggestionDropdown" style="display: none;">
+                <div class="dropdown-section" id="titleSuggestions">
+                    <h4>Titles</h4>
+                    <ul></ul>
+                </div>
+                <div class="dropdown-section" id="authorSuggestions">
+                    <h4>Authors</h4>
+                    <ul></ul>
+                </div>
+            </div>
+            <div class="submit-icon">
+                <button id="submit-icon-Btn" type="button" class="search-btn" onclick="handleSearch()"><i class="icon ph-bold ph-magnifying-glass"></i></button>
+            </div>
+            <button type="button" id="toggleSearchTools"><i class="icon ph-bold ph-sliders-horizontal"></i></button>
+            <div class="search-history">
+        </div>
+
+
+
+
+        </div>
+        <div class="detail-search-box">
+            <div class="item">
+                <label for="isFree" class="label-title">Pied</label>
+                <select name="isFree" id="isFree">
+                    <option value="2">All</option>
+                    <option value="1">Free</option>
+                    <option value="0">Pied</option>
+                </select>
+            </div>
+            <div class="item">
+                <label for="isAdult" class="label-title">Rating</label>
+                <select name="isAdult" id="isAdult">
+                    <option value="2">All</option>
+                    <option value="0">Teen</option>
+                    <option value="1">Adult</option>
+                </select>
+            </div>
+            <div class="item">
+                <label for="isCompleted" class="label-title">Completed</label>
+                <select name="isCompleted" id="isCompleted">
+                    <option value="2">All</option>
+                    <option value="0">Ongoing</option>
+                    <option value="1">Completed</option>
+                </select>
+            </div>
+            <div class="item">
+                <label for="minEp" class="label-title" style="display: block;">Episodes</label>
+                <div class="item-group" style="display: flex; align-items: center; gap: 10px;">
+                    <select name="minEp" id="minEp">
+                        <option value="0">All</option>
+                        <option value="10">10</option>
+                        <option value="30">30</option>
+                        <option value="50">50</option>
+                        <option value="100">100</option>
+                        <option value="200">200</option>
+                        <option value="300">300</option>
+                        <option value="500">500</option>
+                        <option value="1000">1000</option>
+                    </select>
+                    <span class="swung-dash">~</span>
+                    <select name="maxEp" id="maxEp">
+                        <option value="50000">All</option>
+                        <option value="10">10</option>
+                        <option value="30">30</option>
+                        <option value="50">50</option>
+                        <option value="100">100</option>
+                        <option value="200">200</option>
+                        <option value="300">300</option>
+                        <option value="500">500</option>
+                        <option value="1000">1000</option>
+                    </select>
+                </div>
+            </div>
+
+            <div class="item">
+                <label for="orderBy" class="label-title">Sort</label>
+                <select name="orderBy" id="orderBy">
+                    <option value="latest">Latest</option>
+                    <option value="views">Views</option>
+                    <option value="likes">Likes</option>
+                    <option value="subscribers">Subscribes</option>
+                    <option value="episodeCount">Episode Counts</option>
+                </select>
+            </div>
+            <div class="item">
+                <div class="label-title">Genre</div>
+                <div class="checkboxes">
+                    <input type="checkbox" name="favoriteGenre" id="favoriteGenre0" value="" checked="">
+                    <label for="favoriteGenre0">All</label>
+                    <input type="checkbox" name="favoriteGenre" id="favoriteGenre1" value="1">
+                    <label for="favoriteGenre1">Fantasy</label>
+                    <input type="checkbox" name="favoriteGenre" id="favoriteGenre2" value="2">
+                    <label for="favoriteGenre2">Wuxia</label>
+                    <input type="checkbox" name="favoriteGenre" id="favoriteGenre3" value="3">
+                    <label for="favoriteGenre3">Fusion</label>
+                    <input type="checkbox" name="favoriteGenre" id="favoriteGenre4" value="4">
+                    <label for="favoriteGenre4">Modern Fantasy</label>
+                    <input type="checkbox" name="favoriteGenre" id="favoriteGenre5" value="5">
+                    <label for="favoriteGenre5">Game</label>
+                    <input type="checkbox" name="favoriteGenre" id="favoriteGenre6" value="6">
+                    <label for="favoriteGenre6">History</label>
+                    <input type="checkbox" name="favoriteGenre" id="favoriteGenre7" value="7">
+                    <label for="favoriteGenre7">Sports</label>
+                    <input type="checkbox" name="favoriteGenre" id="favoriteGenre8" value="8">
+                    <label for="favoriteGenre8">Light Novel</label>
+                    <input type="checkbox" name="favoriteGenre" id="favoriteGenre9" value="9">
+                    <label for="favoriteGenre9">SF</label>
+                    <input type="checkbox" name="favoriteGenre" id="favoriteGenre10" value="10">
+                    <label for="favoriteGenre10">Military</label>
+                    <input type="checkbox" name="favoriteGenre" id="favoriteGenre11" value="11">
+                    <label for="favoriteGenre11">RomanceFantasy</label>
+                    <input type="checkbox" name="favoriteGenre" id="favoriteGenre12" value="12">
+                    <label for="favoriteGenre12">Romance</label>
+                    <input type="checkbox" name="favoriteGenre" id="favoriteGenre13" value="13">
+                    <label for="favoriteGenre13">GL</label>
+                    <input type="checkbox" name="favoriteGenre" id="favoriteGenre14" value="14">
+                    <label for="favoriteGenre14">BL</label>
+                    <input type="checkbox" name="favoriteGenre" id="favoriteGenre15" value="15">
+                    <label for="favoriteGenre15">Parody</label>
+                    <input type="checkbox" name="favoriteGenre" id="favoriteGenre16" value="16">
+                    <label for="favoriteGenre16">FanFic</label>
+                    <input type="checkbox" name="favoriteGenre" id="favoriteGenre17" value="17">
+                    <label for="favoriteGenre17">Novel</label>
+                    <input type="checkbox" name="favoriteGenre" id="favoriteGenre18" value="18">
+                    <label for="favoriteGenre18">Mystery</label>
+                    <input type="checkbox" name="favoriteGenre" id="favoriteGenre19" value="19">
+                    <label for="favoriteGenre19">Thriller</label>
+                    <input type="checkbox" name="favoriteGenre" id="favoriteGenre20" value="20">
+                    <label for="favoriteGenre20">Scenario</label>
+                    <input type="checkbox" name="favoriteGenre" id="favoriteGenre21" value="21">
+                    <label for="favoriteGenre21">Essay</label>
+                    <input type="checkbox" name="favoriteGenre" id="favoriteGenre22" value="22">
+                    <label for="favoriteGenre22">Poem</label>
+                    <input type="checkbox" name="favoriteGenre" id="favoriteGenre23" value="23">
+                    <label for="favoriteGenre23">Review</label>
+                    <input type="checkbox" name="favoriteGenre" id="favoriteGenre24" value="24">
+                    <label for="favoriteGenre24">Kids</label>
+                </div>
+            </div>
+            <div class="item">
+                <label for="excludeWordText" class="label-title">Exclude words</label>
+                <input type="text" name="excludeWordText" id="excludeWordText" placeholder="Enter multiple words separated by commas(,)" value="">
+                <div class="excludeword-list">
+                    <div class="custom-checkbox">
+                        <input type="checkbox" name="excludeWord" id="excludeWord2" value="title">
+                        <label for="excludeWord2"><span>Title</span></label>
+                    </div>
+                    <div class="custom-checkbox">
+                        <input type="checkbox" name="excludeWord" id="excludeWord3" value="author">
+                        <label for="excludeWord3"><span>Author</span></label>
+                    </div>
+                    <div class="custom-checkbox">
+                        <input type="checkbox" name="excludeWord" id="excludeWord4" value="desc">
+                        <label for="excludeWord4"><span>Description</span></label>
+                    </div>
+                    <div class="custom-checkbox">
+                        <input type="checkbox" name="excludeWord" id="excludeWord1" value="tags">
+                        <label for="excludeWord1"><span>Tags</span></label>
+                    </div>
+                </div>
+            </div>
+            <div class="item">
+                <button type="reset" class="reset-btn"><i class="icon ph-bold ph-arrow-clockwise"></i> Reset</button>
+                <button type="submit" class="search-btn">Search</button>
+            </div>
+        </div>
+    </form>
+
+    <div class="tabs">
+        <div class="tab-button" data-tab="searchHistoryTab">Search history</div>
+        <div class="tab-button" data-tab="recommendationsTab">Recommendations</div>
+    </div>
+
+    <div id="searchHistoryTab" class="tab-content">
+        <div>
+            <button class="toggle-button" id="toggleSave" onclick="toggleSave()">AutoSave: <span id="saveStatus">ON</span></button>
+            <button class="delete-all-button" onclick="deleteAllHistory()">Delete All</button>
+        </div>
+        <div id="searchHistory"></div> <!-- 검색 히스토리를 표시할 div -->
+    </div>
+
+    <div id="recommendationsTab" class="tab-content"></div>
+    <div id="eventsTab" class="tab-content"></div>
+</body>
+<script th:src="@{/js/sidebar.js}"></script>
+<script th:src="@{/js/searchForm.js}"></script>
+</html>

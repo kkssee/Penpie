@@ -1,0 +1,56 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AI Chat Client</title>
+</head>
+<body>
+    <h1>AI Chat Client</h1>
+    <div>
+        <textarea id="userInput" rows="4" cols="50" placeholder="Type your message here...">Erwin, how's Levi recently?</textarea><br>
+        <button onclick="sendMessage()">Send</button>
+    </div>
+    <div id="response"></div> 
+
+    <script>
+        function sendMessage() {
+            const questionText = document.getElementById('userInput').value;
+            
+         // JSON 형식의 데이터 생성
+            const data = JSON.stringify({
+                question:questionText
+            });
+         
+            //alert(data);
+            
+            // Ajax를 사용하여 POST 요청 보내기
+            const xhr = new XMLHttpRequest();
+            xhr.open("POST", "/gpt/ask", true);
+            xhr.setRequestHeader("Content-Type", "application/json");
+
+            // 응답을 처리할 콜백 함수
+            xhr.onreadystatechange = function() {
+                if (xhr.readyState === XMLHttpRequest.DONE) {
+                    if (xhr.status === 200) {
+                        console.log("Response:", xhr.responseText);
+                        document.getElementById('response').innerText = xhr.responseText;
+                    } else {
+                        console.error("Error:", xhr.status);
+                    }
+                }
+            };
+
+            // 요청 전송
+            xhr.send(data);
+            
+            /*
+            fetch(`/chat?userInput=${encodeURIComponent(userInput)}`)
+                .then(response => response.text())
+                .then(data => {
+                    document.getElementById('response').innerText = data;
+                });*/
+        }
+    </script>
+</body>
+</html>

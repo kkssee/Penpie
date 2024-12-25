@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <title>Identity Verification</title>
+    <script type="text/javascript" src="https://code.jquery.com/jquery-1.12.4.min.js" ></script>
+    <script src="https://cdn.iamport.kr/js/iamport.payment-1.2.0.js"></script>
+    <script>
+        function requestVerification(amount) {
+            IMP.init("imp54723837");
+            IMP.certification({  // param
+                pg:'inicis_unified',    //본인인증 설정이 2개이상 되어 있는 경우 필수
+                merchant_uid : 'merchant_' + new Date().getTime(), // 주문 번호
+                m_redirect_url : "{리디렉션 될 URL}", // 모바일환경에서 popup:false(기본값) 인 경우 필수, 예: https://www.myservice.com/payments/complete/mobile
+                popup : false // PC환경에서는 popup 파라미터가 무시되고 항상 true 로 적용됨
+            }, function (rsp) { // callback
+                if (rsp.success) {
+                    // 인증성공
+                    console.log(rsp.imp_uid);
+                    console.log(rsp.merchant_uid);
+
+                    $.ajax({
+                        type : 'POST',
+                        url : '/adult/verify/' + rsp.imp_uid,
+                        data : {
+                            imp_uid : rsp.imp_uid
+                        }
+                    }).done(function(response) {
+                        console.log(response);
+                        if (response.isAdult) {
+                            alert("인증 성공! 성인입니다. 나이: " + response.age);
+                        } else {
+                            alert("미성년자입니다. 나이: " + response.age);
+                        }
+                    });
+                    // jQuery로 HTTP 요청
+                    /*jQuery.ajax({
+                        url: "/adult/identity-verifications",
+                        method: "POST",
+                        headers: { "Content-Type": "application/json" },
+                        data: { imp_uid: rsp.imp_uid }
+                    });*/
+                } else {
+                    alert("인증에 실패하였습니다. 에러 내용: " +  rsp.error_msg);
+                }
+            });
+        }
+
+    </script>
+</head>
+<body>
+<h1>본인인증</h1>
+<input type="hidden" id="identityVerificationId" value="${identityVerificationId}">
+<button onclick="requestVerification()">본인인증 요청</button>
+</body>
+</html>

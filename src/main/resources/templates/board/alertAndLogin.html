@@ -1,0 +1,16 @@
+<!DOCTYPE html>
+<html lang="en">
+<html xmlns:th="http://www.thymeleaf.org"></html>
+<head>
+    <meta charset="UTF-8">
+    <title>Alert</title>
+    <script th:if="${alertMessage}">
+        alert('[[${alertMessage}]]');
+        window.location.href = '/loginForm';
+    </script>
+</head>
+
+<body>
+
+</body>
+</html>

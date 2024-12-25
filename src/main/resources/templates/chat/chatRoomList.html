@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <link rel="icon" href="data:;base64,iVBORw0KGgo=">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Chat Rooms</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <style>
+        .profile-container {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 20px; /* 프로필 이미지와 다른 요소 간의 간격 */
+        }
+
+        .profile-img {
+            width: 50px; /* 원하는 이미지 크기 */
+            height: 50px; /* 1:1 비율 유지 */
+            object-fit: cover; /* 이미지가 원형에 맞게 잘리도록 설정 */
+            border-radius: 50%; /* 원형으로 만들기 */
+            border: 2px solid #ddd; /* 외곽선 */
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* 그림자 효과 */
+        }
+
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f5f5f5;
+            margin: 0;
+            padding: 20px;
+            color: #333;
+        }
+        h1 {
+            text-align: center;
+            margin-bottom: 20px;
+            color: #4A4A4A;
+        }
+        ul {
+            list-style-type: none;
+            padding: 0;
+        }
+        li {
+            margin: 10px 0;
+            display: flex;
+            justify-content: space-between;
+        }
+        button {
+            background-color: #007BFF;
+            color: white;
+            border: none;
+            border-radius: 5px;
+            padding: 10px 20px;
+            font-size: 16px;
+            cursor: pointer;
+            transition: background-color 0.3s, transform 0.2s;
+        }
+        button:hover {
+            background-color: #0056b3;
+            transform: translateY(-2px);
+        }
+        a {
+            display: block;
+            text-align: center;
+            margin-top: 20px;
+            color: #007BFF;
+            text-decoration: none;
+            font-size: 16px;
+        }
+        a:hover {
+            text-decoration: underline;
+        }
+    </style>
+    <script>
+        var g_webSocket = null;
+
+        window.onload = function() {
+            setupWebSocket();
+        };
+
+        function setupWebSocket() {
+            const host = "localhost"; // 배포 시 호스트 주소로 변경
+            const url = "ws://" + host + "/ws/chat";
+
+            if (g_webSocket == null || g_webSocket.readyState !== WebSocket.OPEN) {
+                g_webSocket = new WebSocket(url);
+            }
+
+            g_webSocket.onopen = function() {
+                console.log("WebSocket connection established.");
+            };
+
+            g_webSocket.onmessage = function(event) {
+                const data = JSON.parse(event.data);
+                console.log("onmessage");
+
+                if(data.type === "chatRoom") {
+                    updateChatList(data.chatRoomId, data.sender, data.message, data.timestamp, data.senderNickname);
+                }
+            };
+
+            function updateChatList(chatRoomId, sender, message, timestamp, senderNickname) {
+                console.log("Updating chat list with:", chatRoomId, sender, message); // 추가
+                const chatList = document.getElementById("chatList");
+                let chatRoomElement = chatList.querySelector(`[data-chat-room-id="${chatRoomId}"]`);
+
+                if (chatRoomElement) {
+                    const lastMessageElement = chatRoomElement.querySelector(".last-message");
+                    lastMessageElement.textContent = `${message}`;
+                    const messageTimeElement = chatRoomElement.querySelector(".message-time");
+                    messageTimeElement.textContent = formatDate(timestamp);
+                } else {
+                    // 새로운 채팅방이면 목록에 추가
+                    chatRoomElement = document.createElement("li");
+                    chatRoomElement.setAttribute("data-chat-room-id", chatRoomId);
+
+                    chatRoomElement.innerHTML = `
+                        <form method="get" action="/ws/in/${sender}">
+                            <button type="submit">${senderNickname}</button>
+                        </form>
+                         <div>
+                             Latest message: <span class="last-message">${message}</span><br/>
+                             Time: <span class="message-time">${formatDate(timestamp)}</span>
+                        </div>
+                    `;
+                    chatList.appendChild(chatRoomElement);
+                }
+            }
+            function formatDate(date) {
+                const today = new Date();
+                const givenDate = new Date(date);
+                if (givenDate.toDateString() === today.toDateString()) {
+                    return givenDate.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+                }
+                if (givenDate.getFullYear() === today.getFullYear()) {
+                    return givenDate.toLocaleDateString([], { month: '2-digit', day: '2-digit' });
+                }
+                return givenDate.toLocaleDateString([], { year: 'numeric', month: '2-digit', day: '2-digit' });
+            }
+        }
+    </script>
+</head>
+<body>
+<h1>Chat List</h1>
+<ul id="chatList">
+    <th:block th:each="chatRoom : ${chatRooms}">
+        <li th:data-chat-room-id="${chatRoom.id}">
+            <div class="profile-container">
+                <img class="profile-img" th:src="${chatRoom.profileImg} != null ? '/img/profileImg/' + ${chatRoom.profileImg} : '/img/profileImg/defaultProfilePic.jpg'" alt="Profile Image">
+            </div>
+            <form method="get"
+                  th:action="@{/ws/in/{receiver}(receiver=${chatRoom.sender == currentUser ? chatRoom.receiver : chatRoom.sender})}">
+                <button type="submit">
+                    [[${chatRoom.receiverNickname}]]
+                </button>
+            </form>
+            <div>
+                Latest message: <span class="last-message">[[${chatRoom.lastMessage}]]</span>
+                <br/>
+                Time: <span class="message-time">[[${chatRoom.timestampStr}]]</span>
+            </div>
+        </li>
+    </th:block>
+</ul>
+
+<a href="/">Back to Home</a>
+</body>
+</html>

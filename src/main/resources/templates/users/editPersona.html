@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/thymeleaf-extras-springsecurity6" lang="en">
+<head>
+    <title>Edit your Persona</title>
+    <meta charset="UTF-8" />
+</head>
+<body>
+<div th:fragment="personaForm">
+    <form id="editPersonaForm" enctype="multipart/form-data">
+        <a href="#layer1" class="btn-example"><button type="button">Create a Character</button></a>
+        <div class="dim-layer">
+            <div class="dimBg"></div>
+            <div id="layer1" class="pop-layer">
+                <div class="pop-container">
+                    <div class="pop-conts">
+                        <div class="btn-r">
+                            <a href="#" class="btn-layerClose"><button type="button"><i class="icon ph-bold ph-x"></i></button></a>
+                        </div>
+                        <!--content //-->
+                        <br><h1>Edit your Persona</h1><br>
+                        <label for="characterName">Name</label>
+                        <input type="text" id="characterName" name="characterName" placeholder="Type your persona name"><br>
+
+                        <label for="characterPrompt">Persona Prompt</label>
+                        <textarea id="characterPrompt" name="characterPrompt"></textarea><br>
+
+                        <button type="reset">reset</button>
+                        <div class="btn-summit">
+                            <button type="button" id="editPersonaBtn" onclick="editPersona();">Edit</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </form>
+</div>
+</body>
+</html>

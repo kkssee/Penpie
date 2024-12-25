@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/thymeleaf-extras-springsecurity6" lang="en">
+<head>
+    <title>Character List</title>
+    <meta charset="UTF-8" />
+
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"
+            integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo="
+            crossorigin="anonymous"></script>
+
+    <!-- Sidebar -->
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+
+    <!-- stylesheet -->
+    <link rel="stylesheet" th:href="@{/css/header.css}">
+    <link rel="stylesheet" th:href="@{/css/sidebar.css}">
+    <link rel="stylesheet" th:href="@{/css/characterCreateForm.css}">
+</head>
+<style>
+    /* 전체 컨테이너 스타일 */
+    .container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        padding: 20px;
+        background-color: #f9f9f9;
+    }
+
+    /* 캐릭터 리스트 컨테이너 */
+    .character-container {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        width: 100%;
+        max-width: 800px;
+        padding: 10px 15px;
+        margin-bottom: 10px;
+        background-color: #ffffff;
+        border-radius: 10px;
+        box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+        transition: background-color 0.2s, transform 0.2s;
+        text-decoration: none;
+        color: #333;
+    }
+
+    .character-container:hover {
+        background-color: #f0f0f0;
+        transform: translateY(-3px);
+    }
+
+    /* 캐릭터 이미지 */
+    .character-container img {
+        width: 80px;
+        height: 80px;
+        border-radius: 20%;
+        object-fit: cover;
+        margin-right: 15px;
+    }
+
+    /* 캐릭터 정보 영역 */
+    .character-details {
+        display: flex;
+        flex-direction: column;
+        flex-grow: 1;
+    }
+
+    /* 캐릭터 이름 */
+    .novel-title {
+        font-size: 18px;
+        font-weight: bold;
+        margin: 0;
+        white-space: nowrap;
+        overflow: hidden;
+        text-overflow: ellipsis;
+    }
+
+    /* 제작자 정보 */
+    .character-maker {
+        font-size: 14px;
+        color: #777;
+        margin-top: 5px;
+    }
+
+    /* 아이템 간 간격 */
+    .character-container + .character-container {
+        margin-top: 10px;
+    }
+
+    /* 반응형 디자인 */
+    @media (max-width: 600px) {
+        .character-container {
+            flex-direction: column;
+            align-items: flex-start;
+        }
+
+        .character-container img {
+            margin-bottom: 10px;
+        }
+    }
+
+</style>
+<body>
+<div class="container">
+    <div th:insert="~{fragments/sidebar :: sidebar}"></div>
+    <header>
+        <div th:insert="~{fragments/header :: header}"></div>
+    </header>
+    <div class="contents">
+        <div class="container">
+            <div th:insert="~{fragments/sidebar :: sidebar}"></div>
+            <header>
+                <div th:insert="~{fragments/header :: header}"></div>
+            </header>
+            <div th:each="character : ${list}">
+                <a th:href="|/character/chat/${character.cno}|" class="character-container">
+                    <img th:src="@{'/img/characterPic/' + ${character.characterPic}}" alt="Character Image">
+                    <div class="character-details">
+                        <div class="novel-title">[[${character.characterName}]]</div>
+                        <div class="character-maker">@[[${character.makerNo}]]</div>
+                    </div>
+                </a>
+            </div>
+        </div>
+
+    </div>
+</div>
+</body>
+<script th:src="@{/js/header.js}"></script>
+<script th:src="@{/js/sidebar.js}"></script>
+<script th:src="@{/js/characterCreateForm.js}"></script>
+</html>

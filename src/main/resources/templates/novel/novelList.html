@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>Novel List</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="icon" href="data:;base64,iVBORw0KGgo=">
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"
+            integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo="
+            crossorigin="anonymous"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+        }
+
+        .novel-container {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 20px;
+            padding: 20px;
+        }
+
+        .novel-card {
+            width: 200px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            overflow: hidden;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            transition: transform 0.2s;
+            text-align: center;
+            padding: 15px;
+        }
+
+        .novel-card:hover {
+            transform: scale(1.05);
+        }
+
+        .novel-card img {
+            width: 100%;
+            height: 200px;
+            object-fit: cover;
+        }
+
+        .novel-title {
+            font-size: 16px;
+            font-weight: bold;
+            margin: 10px 0;
+        }
+
+        .novel-author {
+            color: #555;
+            font-size: 14px;
+            margin-bottom: 10px;
+        }
+
+        .stats {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 10px;
+            align-items: center;
+            margin-top: 10px;
+        }
+
+        .stats div {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .icon-button {
+            border: none;
+            background: none;
+            cursor: pointer;
+            font-size: 16px;
+            color: #BCC6D0; /* 옅은 푸른 회색 아이콘 색상 */
+        }
+
+        .icon-button:hover {
+            color: #A2A2A2; /* 아이콘 호버 색상 (어두운 회색) */
+        }
+
+        .stats .count {
+            color: #333; /* 수치를 나타내는 요소의 어두운 회색 색상 */
+            font-size: 14px;
+        }
+    </style>
+</head>
+<body>
+
+<div class="novel-container">
+    <div class="novel-card" th:each="nv:${list}">
+        <img th:src="@{'/img/cover/' + ${nv.cover_path}}" alt="커버 이미지">
+        <div class="novel-title">
+            <a th:href="|/novel/detail/${nv.nv_id}/episodes|">[[${nv.nv_title}]]</a>
+        </div>
+        <div class="novel-author">[[${nv.nickname}]]</div>
+        <div class="stats">
+            <div>
+                <button class="icon-button subscribe-btn"
+                        th:data-id="${nv.nv_id}"
+                        th:data-subscribed="${nv.isSubscribed}">
+                    <i th:classappend="${nv.isSubscribed == 1 ? 'fas fa-star' : 'far fa-star'}"></i>
+                </button>
+                <span class="count" th:text="${nv.subscribeCount}"></span>
+            </div>
+            <div>
+                <i class="far fa-user icon-button"></i> <!-- 빈 사람 아이콘 -->
+                <span class="count" th:text="${nv.totalViews}"></span>
+            </div>
+            <div>
+                <i class="far fa-heart icon-button"></i> <!-- 빈 하트 아이콘 -->
+                <span class="count" th:text="${nv.likeCount}"></span>
+            </div>
+            <div>
+                <i class="far fa-comment icon-button"></i> <!-- 빈 댓글 아이콘 -->
+                <span class="count" th:text="${nv.commentCount}"></span>
+            </div>
+        </div>
+    </div>
+</div>
+
+<p>
+    <a href="/" th:href="@{/}"><button>홈페이지</button></a>
+    <a th:href="@{/novel/nvup}"><button>소설 업로드</button></a>
+    <a th:href="@{/novel/list}"><button>소설 목록</button></a>
+    <a th:href="@{/novel/myNovelList}"><button>작품 관리</button></a>
+</p>
+
+<script>
+    $(document).ready(function() {
+        $(document).on('click', '.subscribe-btn', function () {
+            const nv_id = parseInt($(this).data('id'), 10); // 문자열을 정수로 변환
+            const subscribed = parseInt($(this).data('subscribed'), 10); // 문자열을 정수로 변환
+            $.ajax({
+                url: '/novel/subscribeNovel',
+                method: 'POST',
+                data: {
+                    nv_id: nv_id,
+                    subscribed: subscribed
+                },
+                success: function (response) {
+                    if (response.success) {
+                        const button = $(`button[data-id="${nv_id}"]`);
+                        button.data('subscribed', response.subscribed);
+                        button.find('i').toggleClass('fas fa-star far fa-star', response.subscribed);
+                        location.reload(); // 페이지 새로고침으로 상태 갱신
+                    } else {
+                        alert('구독 처리에 실패했습니다.');
+                    }
+                },
+                error: function (xhr, status, err) {
+                    alert('구독 처리에 실패했습니다.');
+                }
+            });
+        });
+    });
+</script>
+
+
+</body>
+</html>

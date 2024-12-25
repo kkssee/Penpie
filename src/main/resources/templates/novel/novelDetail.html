@@ -1,0 +1,457 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>소설 상세보기</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="icon" href="data:;base64,iVBORw0KGgo=">
+
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+    <!-- Sidebar -->
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+
+    <!-- Banner -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/xeicon@2.3.3/xeicon.min.css">
+    <link rel="icon" href="data:;base64,iVBORw0KGgo=">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/slick-carousel@1.8.1/slick/slick.css"/>
+    <script src="https://cdn.jsdelivr.net/npm/slick-carousel@1.8.1/slick/slick.min.js"></script>
+
+    <!-- stylesheet -->
+    <link rel="stylesheet" th:href="@{/css/index.css}">
+    <link rel="stylesheet" th:href="@{/css/header.css}">
+    <link rel="stylesheet" th:href="@{/css/sidebar.css}">
+    <link rel="stylesheet" th:href="@{/css/characterCreateForm.css}">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            color: #333;
+            background-color: #f9f9f9;
+            text-align: center;
+        }
+
+        .cover-container {
+            position: relative;
+            width: 100%; /* 배경 이미지의 가로 크기 */
+            height: 300px; /* 배경 이미지의 높이 */
+            overflow: visible; /* 자식 요소가 컨테이너를 넘어가도 보이도록 */
+        }
+
+        .cover-background {
+            position: relative;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            filter: blur(20px); /* 배경 블러 효과 */
+            overflow: hidden;
+        }
+
+        .cover-image {
+            position: absolute;
+            top: 80%; /* 이미지가 더 아래로 내려옴 */
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 150px;
+            height: 200px;
+            z-index: 2;
+            border-radius: 8px;
+            box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.2);
+        }
+
+        .novel-details {
+            margin-top: 20px;
+            padding: 20px;
+        }
+
+        .novel-details h1 {
+            font-size: 24px;
+            margin-bottom: 10px;
+        }
+
+        .novel-details p {
+            font-size: 16px;
+            color: #666;
+        }
+
+        .novel-details .nv-desc {
+            font-size: 14px;
+            margin-top: 15px;
+            color: #555;
+        }
+
+        .stats {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 10px;
+            align-items: center;
+            margin-top: 10px;
+        }
+
+        .stats div {
+            display: flex;
+            align-items: center;
+            gap: 5px;
+        }
+
+        .icon-button {
+            border: none;
+            background: none;
+            cursor: pointer;
+            font-size: 20px;
+            color: #BCC6D0; /* 옅은 푸른 회색 아이콘 색상 */
+        }
+
+        .icon-button:hover {
+            color: #A2A2A2; /* 아이콘 호버 색상 (어두운 회색) */
+        }
+
+        .stats i {
+            font-size: 20px;
+            cursor: default;
+            color: #BCC6D0;
+        }
+
+        .stats .non-clickable-icon:hover {
+            color: #BCC6D0; /* 호버 시 색상 유지 */
+        }
+
+        .stats .count {
+            color: #333; /* 수치를 나타내는 요소의 어두운 회색 색상 */
+            font-size: 14px;
+        }
+
+        .info-section {
+            margin-top: 20px;
+            font-size: 14px;
+            color: #888;
+        }
+
+        .info-section label {
+            font-weight: bold;
+            color: #444;
+        }
+
+        .tags {
+            display: flex;
+            justify-content: center; /* 태그들을 가운데 정렬 */
+            flex-wrap: wrap; /* 여러 줄로 넘어갈 경우에도 자동으로 줄바꿈 */
+            gap: 10px; /* 태그 간의 간격 설정 */
+            margin-top: 20px; /* 위쪽에 약간의 여백 추가 */
+        }
+
+        .tag {
+            display: inline-block;
+            background-color: #e0e4e8;
+            padding: 5px 10px;
+            border-radius: 12px;
+            font-size: 14px;
+            color: #333;
+        }
+
+
+        .episode-table {
+            width: 90%;
+            margin: 20px auto;
+            border-collapse: collapse;
+            text-align: center;
+        }
+
+        .episode-table th, .episode-table td {
+            padding: 10px;
+            border-bottom: 1px solid #ddd;
+            font-size: 14px;
+        }
+
+        .episode-table th {
+            background-color: #f0f0f0;
+        }
+
+        .episode-table a {
+            text-decoration: none;
+            color: #333;
+        }
+
+        .episode-table a:hover {
+            color: #007bff;
+        }
+
+        .highlight {
+            background-color: #D8DFE5; /* 어두운 파란색으로 강조 */
+        }
+
+
+        .pop-layer .pop-container {
+            padding: 20px 25px;
+        }
+
+        .pop-layer {
+            display: none;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 70%;
+            height: 80%;
+            background-color: whitesmoke;
+            z-index: 10;
+            border-radius: 30px;
+        }
+
+
+        .dim-layer {
+            display: none;
+            position: fixed;
+            _position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 100;
+        }
+
+        .dim-layer .dimBg {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: #000;
+            opacity: .5;
+            filter: alpha(opacity=50);
+        }
+
+        .dim-layer .pop-layer {
+            display: block;
+        }
+
+        a.btn-layerClose {
+            display: inline-block;
+            height: 25px;
+            padding: 0 14px 0;
+            border: 1px solid #304a8a;
+            background-color: #3f5a9d;
+            font-size: 13px;
+            color: #fff;
+            line-height: 25px;
+        }
+
+        a.btn-layerClose:hover {
+            border: 1px solid #091940;
+            background-color: #1f326a;
+            color: #fff;
+        }
+    </style>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"
+            integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo="
+            crossorigin="anonymous"></script>
+    <script>
+        $(document).ready(function() {
+            $(document).on('click', '.subscribe-btn', function () {
+                const nv_id = $(this).data('id');
+                const subscribed = $(this).data('subscribed');
+                $.ajax({
+                    url: '/novel/subscribeNovel',
+                    method: 'POST',
+                    data: {
+                        nv_id: nv_id,
+                        subscribed: subscribed
+                    },
+                    success: function (response) {
+                        if (response.success) {
+                            const button = $(`button[data-id="${nv_id}"]`);
+                            button.data('subscribed', response.subscribed);
+                            button.find('i').toggleClass('fas fa-star far fa-star', response.subscribed);
+                            location.reload();
+                        } else {
+                            alert('구독 처리에 실패했습니다.');
+                        }
+                    },
+                    error: function (xhr, status, err) {
+                        alert('구독 처리에 실패했습니다.');
+                    }
+                });
+            });
+        });
+
+        function toggleSortOrder(nvId, currentSortOrder) {
+            // 정렬 순서를 변경
+            const newSortOrder = currentSortOrder === 'desc' ? 'asc' : 'desc';
+
+            // 버튼 텍스트 변경
+            document.getElementById('sortButton').innerText = newSortOrder === 'desc' ? 'Newest' : 'Oldest';
+
+            // URL을 변경하되 페이지를 새로고침하지 않고 히스토리에도 기록하지 않음
+            const newUrl = `/novel/detail/${nvId}/episodes?sortOrder=${newSortOrder}`;
+            history.replaceState(null, null, newUrl);
+
+            // AJAX 요청을 보내서 서버에서 에피소드 리스트를 받아와 업데이트
+            $.ajax({
+                url: newUrl,
+                method: 'GET',
+                success: function(response) {
+                    // 에피소드 리스트를 서버 응답으로 업데이트
+                    const updatedTbody = $(response).find('tbody').html();
+                    $('tbody').html(updatedTbody);
+
+                    // 새로운 정렬 순서를 버튼에 반영
+                    document.getElementById('sortButton').dataset.sortOrder = newSortOrder;
+                },
+                error: function() {
+                    alert('정렬 변경 중 오류가 발생했습니다.');
+                }
+            });
+        }
+
+    </script>
+</head>
+<script>
+    // 이미지 태그 선택
+    const image = document.querySelector('.cover-image');
+
+    // 이미지의 절대 경로 가져오기
+    const absolutePath = image.src;
+
+    // 콘솔에 출력
+    console.log('이미지 절대 경로:', absolutePath);
+</script>
+
+<body>
+<div class="container">
+    <div th:insert="~{fragments/sidebar :: sidebar}"></div>
+    <header>
+        <div th:insert="~{fragments/header :: header}"></div>
+    </header>
+    <div class="contents">
+
+<main th:object="${nv}">
+
+    <div class="cover-container">
+        <img class="cover-background" th:src="@{'/img/cover/' + ${nv.cover_path}}" alt="배경 이미지">
+        <img class="cover-image" th:src="@{'/img/cover/' + ${nv.cover_path}}" alt="커버 이미지">
+    </div>
+
+    <div class="novel-details">
+        <h1 th:text="*{nv_title}">소설 제목</h1>
+        <p th:text="*{nickname}">작가명</p>
+        <div class="nv-desc" th:utext="*{nv_desc}">소설 설명</div>
+    </div>
+
+    <div class="info-section" style="display: inline-flex; align-items: center">
+        <div th:text="*{nvctg_name}"></div>
+        <div class="tags">
+            <span class="tag" th:each="tag: ${nv.nvtag_name}">[[${tag}]]</span>
+        </div>
+    </div><br>
+    <div class="stats">
+        <div>
+            <button class="icon-button subscribe-btn"
+                    th:data-id="${nv.nv_id}"
+                    th:data-subscribed="${nv.isSubscribed}">
+                <i th:classappend="${nv.isSubscribed == 1 ? 'fas fa-star' : 'far fa-star'}"></i>
+            </button>
+            <span class="count" th:text="${nv.subscribeCount}"></span>
+        </div>
+        <div>
+            <i class="far fa-user non-clickable-icon"></i> <!-- 빈 사람 아이콘 -->
+            <span class="count" th:text="${nv.totalViews}"></span>
+        </div>
+        <div>
+            <i class="far fa-heart non-clickable-icon"></i> <!-- 빈 하트 아이콘 -->
+            <span class="count" th:text="${nv.likeCount}"></span>
+        </div>
+        <div>
+            <i class="far fa-comment non-clickable-icon"></i> <!-- 빈 댓글 아이콘 -->
+            <span class="count" th:text="${nv.commentCount}"></span>
+        </div>
+    </div>
+
+    <div th:if="${viewHistory == null or viewHistory.isEmpty()}">
+        <a th:href="@{/novel/episode/${firstEpisode}}">
+            <button>Ep. 0 - <span th:text="${eplist[0].ep_title}"></span></button>
+        </a>
+    </div>
+
+    <div th:if="${viewHistory != null && !viewHistory.isEmpty()}">
+        <a th:href="@{/novel/episode/${lastEpisode.ep_id}}">
+            <button>
+                Continue to read Ep.<span th:text="${lastEpisode.episode_number}"></span> - <span th:text="${lastEpisode.ep_title}"></span>
+            </button>
+        </a>
+    </div>
+
+    <div>
+        <button id="sortButton"
+                th:data-nv-id="${nv.nv_id}"
+                th:data-sort-order="${sortOrder}"
+                onclick="toggleSortOrder(this.dataset.nvId, this.dataset.sortOrder)">
+            <span th:text="${sortOrder == 'desc' ? 'Newest' : 'Oldest'}"></span>
+        </button>
+    </div>
+
+
+    <table class="episode-table">
+        <tbody>
+        <tr th:each="ep : ${eplist}"
+            th:classappend="${viewHistoryIds != null && viewHistoryIds.contains(ep.ep_id) ? 'highlight' : ''}"
+            th:onclick="|location.href='/novel/episode/${ep.ep_id}'|"
+
+            style="cursor: pointer;">
+            <td>[[${ep.episode_number}]]</td>
+            <td>[[${ep.ep_title}]]</td>
+            <td>[[${ep.ep_date}]]</td>
+            <td>[[${ep.ep_views}]]</td>
+            <td>[[${ep.commentCount}]]</td>
+            <td>
+                <span th:if="${ep.price != 0 && ep.price != null}">
+                    <i class="icon ph-bold ph-cookie"></i>
+                    <span th:text="${ep.price}"></span>
+                </span>
+                <span th:if="${ep.price == 0 || ep.price == null}" th:text="'Free'"></span>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+
+    <!-- 결제 팝업 레이어 -->
+    <div id="payment-popup" class="popup hidden">
+        <div class="popup-content">
+            <h3>Purchase Episode</h3>
+            <p id="popup-message"></p>
+            <div class="popup-buttons">
+                <button id="confirm-purchase" class="btn-confirm">Confirm</button>
+                <button id="cancel-purchase" class="btn-cancel">Cancel</button>
+            </div>
+        </div>
+    </div>
+
+
+    <div class="dim-layer">
+        <div class="dimBg"></div>
+        <div id="layer1" class="pop-layer">
+            <div class="pop-container">
+                <div class="pop-conts">
+                    <div class="btn-r">
+                        <a href="#" class="btn-layerClose"><button type="button"><i class="icon ph-bold ph-x"></i></button></a>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <p>
+        <a href="/" th:href="@{/}"><button>Back to Home</button></a>
+        <a th:href="|/novel/nvedit/*{nv_id}|"><button>Edit Novel</button></a>
+        <a th:href="|/novel/epup/*{nv_id}|"><button>Upload Episode</button></a>
+        <a th:href="@{/novel/list}"><button>Novel List</button></a>
+    </p>
+</main>
+    </div>
+</div>
+</body>
+<script th:src="@{/js/index.js}"></script>
+<script th:src="@{/js/header.js}"></script>
+<script th:src="@{/js/sidebar.js}"></script>
+<script th:src="@{/js/characterCreateForm.js}"></script>
+</html>

@@ -1,0 +1,473 @@
+<!DOCTYPE html>
+<html lang="ko" xmlns:sec="http://www.w3.org/1999/xhtml">
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>postDetail</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+
+    <style rel="stylesheet">
+        .like-button {
+            background-color: transparent;
+            border: none;
+            cursor: pointer;
+            font-size: 24px;
+            transition: color 0.3s;
+        }
+
+        .like-button .fa-thumbs-up {
+            color: black;
+        }
+
+        .like-button .fa-thumbs-up.liked {
+            color: purple;
+        }
+    </style>
+    <link href="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.snow.css" rel="stylesheet" />
+
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+            color: #333;
+        }
+        .container {
+            display: flex;
+            width: 100%;
+            margin-top: 20px;
+        }
+
+        header {
+            padding: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            background-color: #fff;
+            color: #666666;
+            border-bottom: 1px solid #ddd;
+            flex-wrap: wrap;
+            position: fixed; /* Fix header at the top */
+            width: 100%; /* Full width */
+            top: 0;
+            left: 0;
+            z-index: 1000;
+        }
+
+        header img {
+            max-width: 200px;
+            height: auto;
+        }
+
+
+        header button {
+            background-color: darkblue;
+            color: white;
+            padding: 5px 10px;
+            border: none;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+
+        header a {
+            text-decoration: none;
+        }
+        nav.nav {
+            width: 200px;
+            background-color: #ffffff;
+            border-right: 1px solid #ddd;
+            padding: 20px;
+            height: 100vh; /* Full height */
+            position: fixed; /* Stick it to the left */
+            top: 60px;
+            left: 0;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* Navigation styles */
+        nav.nav li {
+            display: inline;
+            margin: 0 10px;
+        }
+
+        nav.nav a {
+            color: #777777;
+            text-decoration: none;
+            padding: 10px 0;
+            display: block;
+        }
+
+        nav.nav a:hover {
+            text-decoration: underline;
+        }
+
+
+        main {
+            margin-left: 220px;
+            /*max-width: 800px;*/
+            /*margin: 0 auto;*/
+            background-color: white;
+            padding: 20px;
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.1);
+            margin-top: 80px;
+            flex: 1;
+        }
+
+        h3 {
+            color: #6200ea;
+            text-align: center;
+        }
+
+        h4 {
+            margin-bottom: 20px;
+            color: #333;
+        }
+
+        .button-container {
+            display: flex;
+            justify-content: flex-end;
+            gap: 10px;
+            margin-bottom: 20px;
+        }
+
+        button {
+            background-color: darkblue;
+            color: #fff;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s ease;
+        }
+        .title {
+            font-size: 24px;
+            font-weight: bold;
+        }
+
+        .date {
+            font-size: 12px;
+            color: gray;
+        }
+        .cate-name {
+            color: green;
+        }
+
+        .comment-section {
+            margin-top: 30px;
+            border-top: 1px solid #ccc;
+            padding-top: 20px;
+        }
+
+        .comment {
+            margin-bottom: 15px;
+            padding: 10px 20px;
+            background-color: #f9f9f9;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+            position: relative;
+        }
+
+        .reply {
+            margin-left: 40px;
+            background-color: #f0f0f0;
+        }
+        .comment > span {
+            display: block;
+            margin-bottom: 5px;
+            font-weight: bold;
+        }
+        .comment > span.nickname {
+            font-weight: bold;
+        }
+
+        .comment > span.date {
+            font-size: 12px;
+            color: gray;
+            margin-left: 10px;
+        }
+
+        .comment > span.b_comment {
+            display: block;
+            margin-top: 5px;
+        }
+
+        .comment-buttons {
+            display: flex;
+            justify-content: flex-end;
+            font-size: 12px;
+            color: gray;
+        }
+
+        .comment-buttons button {
+            background-color: transparent;
+            border: none;
+            cursor: pointer;
+            color: gray;
+            font-size: 12px;
+            margin-left: 5px;
+        }
+
+        .comment-buttons button:hover {
+            color: darkgray;
+        }
+
+        .post-details .cate-name {
+            font-weight: bold;
+        }
+
+        .post-details .edit-buttons {
+            font-size: 12px;
+            color: gray;
+            float: right;
+        }
+
+
+        .comment button {
+            background-color: transparent;
+            color: #888;
+            border: none;
+            cursor: pointer;
+            font-size: 14px;
+            transition: color 0.3s;
+        }
+
+        .comment button:hover {
+            color: #333;
+        }
+        .comment-buttons button:hover {
+            color: darkgray;
+        }
+
+        .post-details .cate-name {
+            font-weight: bold;
+        }
+
+        .post-details .edit-buttons {
+            font-size: 12px;
+            color: gray;
+            float: right;
+        }
+        .comment-form {
+            margin-top: 20px;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .comment-form textarea {
+            width: 100%;
+            height: 100px;
+            padding: 10px;
+            margin-bottom: 10px;
+            border-radius: 5px;
+            border: 1px solid #ddd;
+            resize: none;
+            font-size: 16px;
+        }
+
+        .comment-buttons {
+            display: flex;
+            justify-content: space-between;
+            margin-top: 10px;
+            font-size: 12px;
+        }
+
+        .comment-buttons button {
+            background-color: transparent;
+            border: none;
+            cursor: pointer;
+            color: #888;
+            font-size: 12px;
+            margin-left: 5px;
+        }
+    </style>
+
+    <script src="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.js"></script>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+    <script type="text/javascript">
+        document.addEventListener('DOMContentLoaded', function () {
+            const likeButton = document.getElementById('likeButton');
+            const likeIcon = document.getElementById('likeIcon');
+            var postid = document.getElementById('post_id').value;
+
+            likeButton.addEventListener('click', function () {
+                $.ajax({
+                    url: '/board/liked/' + postid,
+                    method: 'post',
+                    cache: false,
+                    dataType: 'json',
+                    success: function(res) {
+                        if (res.liked) {
+                            likeButton.classList.add('liked');
+                            likeIcon.classList.add('liked');
+                            alert('추천!');
+                        } else {
+                            likeButton.classList.add('liked');
+                            likeIcon.classList.add('liked');
+                            alert(res.message);
+                        }
+                    },
+                    error: function(xhr, status, err) {
+                        alert('에러: ' + err);
+                    }
+                });
+            });
+        });
+
+        function deletepost(postid) {
+            if (!confirm('정말로 삭제하시겠습니까?')) return false;
+            var categoryId = document.getElementById('b_category_id').value;
+            $.ajax({
+                url: '/board/deletepost/' + postid,
+                method: 'post',
+                cache:false,
+                dataType: 'json',
+                success: function(res) {
+                    alert(res.deleted ? '삭제 성공' : '삭제 실패');
+
+                    window.location.href = "/board/list/" + categoryId;
+
+                },
+                error: function(xhr, status, err) {
+                    alert('에러: ' + err);
+                }
+            });
+        }
+    </script>
+    <script>
+        function saveComment(parentId = null) {
+
+            const param = {
+                post_id: document.getElementById('post_id').value,
+                user_no: document.getElementById('user_no').value,
+                b_comment: document.getElementById('b_comment').value,
+                parentno: parentId // If it's a reply, pass the parent comment ID
+            };
+
+            if(!param.b_comment){
+                param.b_comment = document.getElementById(`replyComment-${parentId}`).value;
+            }
+            $.ajax({
+                url: '/board/write',
+                method: 'POST',
+                data: param,
+                success: function (res) {
+                    alert(res.result ? '댓글 성공' : '댓글 실패');
+                    if(res.more) alert('더 이상 하위 댓글을 달 수 없습니다');
+
+                    window.location.href = "/board/detail/" + param.post_id;
+
+                },
+                error: function (xhr, status, error) {
+                    alert('에러 발생: ' + error);
+                }
+            });
+        }
+
+        function replyToComment(commentId) {
+            const replyArea = document.getElementById('replyArea-' + commentId);
+            replyArea.innerHTML = `
+                <textarea id="replyComment-${commentId}" placeholder="답글을 입력하세요"></textarea>
+                <button onclick="saveComment(${commentId}, ${commentId})">답글 달기</button>
+            `;
+        }
+        function deleteToComment(commentId) {
+            if (!confirm('정말로 삭제하시겠습니까?')) return false;
+            $.ajax({
+                url: '/board/deletcoment/' + commentId,
+                method: 'post',
+                cache:false,
+                dataType: 'json',
+                success: function(res) {
+                    alert(res.deleted ? '삭제 성공' : '삭제 실패');
+
+                },
+                error: function(xhr, status, err) {
+                    alert('에러: ' + err);
+                }
+            });
+        }
+    </script>
+</head>
+
+<body>
+<main th:object="${post}">
+    <header>
+        <a href="/index"><button style="border: none; background-color: transparent;">
+            <img src="/img/logo/logo.png" alt="Logo">
+        </button></a>
+    </header>
+    <nav class="nav">
+        <li><a href="/board/freelist/page/1">자유게시판</a></li>
+        <li><a href="/board/replylist/page/1">소설릴레이</a></li>
+        <li><a href="/board/best/page/1">실시간 베스트<span style="color:red;">!</span></a></li>
+
+    </nav>
+    <!-- Post details -->
+    <div class="post-details">
+        <a th:href="@{'/board/list/'+ ${post.b_category_id}}" class="cate-name" >[[*{cate_name}]]></a>
+        <div class="edit-buttons" th:if="${isOwner}" >
+            <a th:href="@{'/board/updateForm/'+ ${post.postid}}">수정</a>
+            <a th:href="|javascript:deletepost(${post.postid});|">삭제</a>
+        </div>
+    </div>
+    <input type="hidden" id="post_id" name="post_id" th:value="*{postid}">
+    <input type="hidden" id="b_category_id" th:value="*{b_category_id}">
+
+    <div>
+        <span th:text="*{title}" class="title"></span>
+    </div>
+    <div>
+        <span th:text="*{nickname}"></span>
+    </div>
+    <div>
+        <span th:text="*{date}"  class="date"></span>
+    </div>
+    <div class="viewer-container">
+        <div id="quillViewer" th:utext="*{content}"></div>
+    </div>
+
+    추천
+    <button id="likeButton" class="like-button">
+        <i id="likeIcon" class="fas fa-thumbs-up" th:classappend="${hlike} ? 'liked' : ''"></i>
+    </button>
+
+    <!-- Comment section -->
+    <div class="comment-section">
+        <h4>댓글</h4>
+        <div th:each="comment : ${comments}">
+            <div class="comment"
+                 th:classappend="${comment.depthno > 0} ? 'reply' : ''"
+                 th:style="|margin-left: ${comment.depthno * 20}px;|"> <!-- Indent based on depth -->
+                <span  class="nickname" th:text="${comment.nickname}"></span>
+                <span  class="b_comment" th:text="${comment.b_comment}"></span>
+                <span class="date" th:text="${#dates.format(comment.create_dt, 'yyyy-MM-dd HH:mm')}"></span>
+                <div class="comment-buttons">
+                    <button th:if="${user}" th:onclick="'replyToComment(' + ${comment.b_comment_id} + ');'">답글</button>
+                    <button th:if="${deleter}" th:onclick="'deleteToComment(' + ${comment.b_comment_id} + ');'">삭제</button>
+                </div>
+                <div th:id="'replyArea-' + ${comment.b_comment_id}"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- New comment form -->
+    <form id="commentForm" class="comment-form" th:if="${user}">
+        <span>[[${user.nickname}]]</span>
+        <input type="hidden" name="user_no" id="user_no" th:value="${user.userno}">
+        <textarea name="b_comment" id="b_comment" placeholder="댓글을 입력하세요"></textarea>
+        <button type="button" onclick="saveComment();">댓글 달기</button>
+    </form>
+</main>
+
+<script>
+    const quill = new Quill('#quillViewer', {
+        modules: { clipboard: true },
+        readOnly: true
+    });
+</script>
+</body>
+</html>

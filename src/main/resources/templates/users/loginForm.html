@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org" lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>Login Form</title>
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js" integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+    <script type="text/javascript">
+        if('[[${error}]]' !== '') {
+            alert('[[${error}]]');
+        } else if('[[${logout}]]' !== '') {
+            alert('[[${logout}]]');
+        }
+    </script>
+    <style>
+        body {
+            font-family: 'Noto Sans', Arial, sans-serif;
+            background-color: #f4f4f4;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+
+        main {
+            background: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+            max-width: 400px;
+            width: 100%;
+        }
+
+        nav {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        nav img {
+            max-width: 150px;
+            height: auto;
+        }
+
+        h3 {
+            text-align: center;
+            margin-bottom: 20px;
+            color: #333;
+        }
+
+        form {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
+        }
+
+        label {
+            font-size: 14px;
+            margin-bottom: 5px;
+            color: #555;
+        }
+
+        input[type="text"], input[type="password"] {
+            width: 100%;
+            padding: 10px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+
+        button {
+            background-color: #007bff;
+            color: #fff;
+            padding: 10px;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 16px;
+            transition: background-color 0.3s;
+        }
+
+        button:hover {
+            background-color: #0056b3;
+        }
+
+        .message, .success {
+            text-align: center;
+            font-size: 14px;
+            margin-top: 10px;
+        }
+
+        .message {
+            color: red;
+        }
+
+        .success {
+            color: green;
+        }
+
+        img {
+            width: 200px;
+            height: auto;
+            margin: 10px 0;
+            display: block;
+            margin-left: auto;
+            margin-right: auto;
+        }
+    </style>
+
+
+    <script src="https://accounts.google.com/gsi/client" async></script>
+</head>
+<body>
+<main>
+    <nav>
+        <a href="/index"><button style="border: none; background-color: transparent;">
+            <img src="/img/logo/logo.png" alt="Logo">
+        </button></a>
+    </nav>
+    <h3>로그인</h3>
+    <form action="/doLogin" method="post">
+        <div>
+            <label for="id">아이디</label>
+            <input type="text" name="id" id="id">
+        </div>
+        <div>
+            <label for="pw">암 호</label>
+            <input type="password" name="pw" id="pw">
+        </div>
+        <!-- Remember Me Toggle -->
+        <label>
+            <input type="checkbox" name="remember-me"> Stay signed in
+        </label>
+        <div>
+            <button type="submit">로그인</button>
+        </div>
+    </form>
+
+
+    Don't have account? <a href="/signup" th:href="@{/join}" class="button">Sign up</a><br>
+
+    <a th:href="@{/login/google}">
+        <img src="https://store.freeemaildatabase.com/assets/images/Google_Button.png" alt="Google Login"/>
+    </a>
+
+</main>
+</body>
+</html>

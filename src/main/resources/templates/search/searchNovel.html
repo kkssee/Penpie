@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/thymeleaf-extras-springsecurity6" lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Penpie</title>
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"
+            integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo="
+            crossorigin="anonymous"></script>
+
+    <!-- Sidebar -->
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+
+    <!-- Banner -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/xeicon@2.3.3/xeicon.min.css">
+    <link rel="icon" href="data:;base64,iVBORw0KGgo=">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/slick-carousel@1.8.1/slick/slick.css"/>
+    <script src="https://cdn.jsdelivr.net/npm/slick-carousel@1.8.1/slick/slick.min.js"></script>
+
+    <!-- stylesheet -->
+    <link rel="stylesheet" th:href="@{/css/index.css}">
+    <link rel="stylesheet" th:href="@{/css/header.css}">
+    <link rel="stylesheet" th:href="@{/css/sidebar.css}">
+    <link rel="stylesheet" th:href="@{/css/characterCreateForm.css}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+
+</head>
+<style>
+    /* 부모 컨테이너: 가로 배치 */
+    .novel-item {
+        display: flex;
+        align-items: flex-start; /* 상단 정렬 */
+        gap: 20px; /* 이미지와 정보 사이 간격 */
+        margin-bottom: 5px; /* 항목 간 여백 */
+        padding: 10px 10px 30px 30px;
+        border: none;
+    }
+
+    /* 이미지 스타일 */
+    .novel-cover {
+        width: 120px; /* 고정 크기 */
+        height: auto;
+        border-radius: 8px; /* 살짝 둥글게 */
+        box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2); /* 그림자 추가 */
+    }
+
+    /* 정보 컨테이너 */
+    .novel-info {
+        display: flex;
+        flex-direction: column; /* 세로로 쌓이도록 설정 */
+        justify-content: space-between; /* 상단은 제목/설명, 하단은 아이콘 */
+        flex: 1;
+    }
+
+    /* 제목 */
+    .novel-title {
+        font-size: 1.4em;
+        font-weight: bold;
+        margin-bottom: 7px;
+    }
+
+    /* 설명 */
+    .novel-desc {
+        font-size: 1em;
+        color: #555;
+        margin-bottom: 25px;
+        line-height: 1.4;
+    }
+
+
+    .stats {
+        margin-top: auto; /* 부모 요소의 남는 공간을 모두 위로 밀어서 하단 배치 */
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: flex-start;
+        gap: 10px;
+        align-items: center;
+    }
+
+    .stats div {
+        display: flex;
+        align-items: center;
+        gap: 5px;
+    }
+
+    .icon-button {
+        border: none;
+        background: none;
+        cursor: pointer;
+        font-size: 20px;
+        color: #BCC6D0; /* 옅은 푸른 회색 아이콘 색상 */
+    }
+
+    .icon-button:hover {
+        color: #A2A2A2; /* 아이콘 호버 색상 (어두운 회색) */
+    }
+
+    .stats i {
+        font-size: 20px;
+        cursor: default;
+        color: #BCC6D0;
+    }
+
+    .stats .non-clickable-icon:hover {
+        color: #BCC6D0; /* 호버 시 색상 유지 */
+    }
+
+    .stats .count {
+        color: #333; /* 수치를 나타내는 요소의 어두운 회색 색상 */
+        font-size: 14px;
+    }
+
+    .novel-author {
+        color: #888;
+    }
+</style>
+
+<script>
+    $(document).ready(function() {
+        $(document).on('click', '.subscribe-btn', function () {
+            const nv_id = $(this).data('id');
+            const subscribed = $(this).data('subscribed');
+            $.ajax({
+                url: '/novel/subscribeNovel',
+                method: 'POST',
+                data: {
+                    nv_id: nv_id,
+                    subscribed: subscribed
+                },
+                success: function (response) {
+                    if (response.success) {
+                        const button = $(`button[data-id="${nv_id}"]`);
+                        button.data('subscribed', response.subscribed);
+                        button.find('i').toggleClass('fas fa-star far fa-star', response.subscribed);
+                        location.reload();
+                    } else {
+                        alert('구독 처리에 실패했습니다.');
+                    }
+                },
+                error: function (xhr, status, err) {
+                    alert('구독 처리에 실패했습니다.');
+                }
+            });
+        });
+    });
+
+    function toggleSortOrder(nvId, currentSortOrder) {
+        // 정렬 순서를 변경
+        const newSortOrder = currentSortOrder === 'desc' ? 'asc' : 'desc';
+
+        // 버튼 텍스트 변경
+        document.getElementById('sortButton').innerText = newSortOrder === 'desc' ? 'Newest' : 'Oldest';
+
+        // URL을 변경하되 페이지를 새로고침하지 않고 히스토리에도 기록하지 않음
+        const newUrl = `/novel/detail/${nvId}/episodes?sortOrder=${newSortOrder}`;
+        history.replaceState(null, null, newUrl);
+
+        // AJAX 요청을 보내서 서버에서 에피소드 리스트를 받아와 업데이트
+        $.ajax({
+            url: newUrl,
+            method: 'GET',
+            success: function(response) {
+                // 에피소드 리스트를 서버 응답으로 업데이트
+                const updatedTbody = $(response).find('tbody').html();
+                $('tbody').html(updatedTbody);
+
+                // 새로운 정렬 순서를 버튼에 반영
+                document.getElementById('sortButton').dataset.sortOrder = newSortOrder;
+            },
+            error: function() {
+                alert('정렬 변경 중 오류가 발생했습니다.');
+            }
+        });
+    }
+
+</script>
+<body>
+<div th:insert="~{fragments/sidebar :: sidebar}"></div>
+<header>
+    <div th:insert="~{fragments/header :: header}"></div>
+</header>
+
+<div class="contents">
+    <div th:if="${#lists.isEmpty(novelList)}">
+        <p>No search results</p>
+    </div>
+    <ul th:if="${!#lists.isEmpty(novelList)}">
+        <li th:each="novel : ${novelList}">
+            <a th:href="@{/novel/detail/{id}(id=${novel.nv_id})/episodes}" class="novel-link" style="text-decoration: none; color: black">
+            <div class="novel-item">
+                <img class="novel-cover" th:src="@{/img/cover/{coverPath}(coverPath=${novel.cover_path})}" alt="Cover Image" /> <!-- 커버 이미지 -->
+                <div class="novel-info">
+                    <h2 class="novel-title" th:text="${novel.nv_title}"></h2> <!-- 소설 제목 -->
+                    <span class="novel-author" th:text="${novel.nickname}"></span> <!-- 닉네임 -->
+                    <p class="novel-desc" th:text="${novel.nv_desc}"></p> <!-- 소설 설명 -->
+                    <div class="stats">
+                        <div>
+                            <button class="icon-button subscribe-btn"
+                                    th:data-id="${novel.nv_id}"
+                                    th:data-subscribed="${novel.isSubscribed}">
+                                <i th:classappend="${novel.isSubscribed == 1 ? 'fas fa-star' : 'far fa-star'}"></i>
+                            </button>
+                            <span class="count" th:text="${novel.subscribeCount}"></span>
+                        </div>
+                        <div>
+                            <i class="far fa-user non-clickable-icon"></i> <!-- 빈 사람 아이콘 -->
+                            <span class="count" th:text="${novel.totalViews}"></span>
+                        </div>
+                        <div>
+                            <i class="far fa-heart non-clickable-icon"></i> <!-- 빈 하트 아이콘 -->
+                            <span class="count" th:text="${novel.likeCount}"></span>
+                        </div>
+                        <div>
+                            <i class="far fa-comment non-clickable-icon"></i> <!-- 빈 댓글 아이콘 -->
+                            <span class="count" th:text="${novel.commentCount}"></span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            </a>
+        </li>
+    </ul>
+
+
+</div>
+
+<a href="/novel" class="back-button">돌아가기</a>
+</body>
+<script th:src="@{/js/index.js}"></script>
+<script th:src="@{/js/header.js}"></script>
+<script th:src="@{/js/sidebar.js}"></script>
+<script th:src="@{/js/characterCreateForm.js}"></script>
+</html>

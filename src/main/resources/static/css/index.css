@@ -1,0 +1,235 @@
+@import url('https://fonts.googleapis.com/css?family=Noto+Sans+KR:300,400,500&display=swap');
+
+.slidewrap {
+    width: 100%; /* Wider container for more spacing */
+    position: relative;
+    overflow: hidden;
+    margin: 0 auto;
+    height: 527px;
+}
+.slick-prev,
+.slick-next {
+    position: absolute;
+    top: 50%;
+    transform: translateY(-50%);
+    background-color: rgba(135, 206, 250, 0); /* 하늘색 배경 */
+    color: white; /* 텍스트 색상 */
+    border: none;
+    border-radius: 100%; /* 둥글게 만들기 */
+    width: 40px; /* 버튼 크기 */
+    height: 40px; /* 버튼 크기 */
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    opacity: 0; /* 처음에는 보이지 않게 설정 */
+    transition: opacity 0.5s ease; /* 부드러운 전환 효과 */
+    z-index: 1000;
+}
+
+.slidewrap:hover .slick-prev,
+.slidewrap:hover .slick-next {
+    opacity: 1; /* 마우스를 올리면 보이도록 설정 */
+}
+.slick-prev {
+    right:auto;
+    left: 24px; /* 왼쪽 위치 */
+}
+
+.slick-next {
+    left:auto;
+    right:24px;
+
+}
+.slides {
+    width: 100%;
+    height: 527px;
+}
+.slide {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    font-size: 40px;
+    transition: transform 0.5s ease;
+    margin: 0 5px; /*슬라이드 간격!!!*/
+}
+
+/* 라이브러리 */
+.con {
+    margin:0 auto;
+}
+.line-height-0-ch-only > * {
+    line-height:normal;
+}
+fieldset {
+    padding:0;
+    margin:0;
+}
+.blind, legend {
+    overflow: hidden;
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    font-size: 12px;
+    clip: rect(1px, 1px, 1px, 1px);
+}
+.slick-slide {
+    transition: transform 0.5s ease;
+}
+.slick-center .img-box {
+    transform: scale(1.0); /* 중앙 이미지를 80% 크기로 줄임 */
+}
+.slick-slide:not(.slick-center) .img-box {
+    transform: scale(1.0); /* 양쪽 이미지를 120% 크기로 키움 */
+}
+.slick-center .section1 {
+    display: flex; /* Flexbox 사용 */
+    flex-direction: column; /* 세로 방향 정렬 */
+    align-items: center; /* 중앙 정렬 */
+    justify-content: center; /* 중앙 정렬 */
+    position: relative; /* 자식 요소의 절대 위치를 위한 설정 */
+    width: 100%; /* 부모 요소에 맞게 */
+
+    overflow: hidden; /* 넘치는 부분 숨기기 */
+}
+.slick-slide:not(.slick-center) .section1 {
+    transform: scale(0.8); /* Smaller side images */
+    margin: 0 5px; /* Increase the spacing between side slides */
+    opacity: 0.8; /* Slight transparency for the side slides */
+}
+
+/* 메인 배너 슬라이더 */
+.slides {
+    position:relative;
+    margin-bottom:0 !important;
+}
+.img-box {
+    width: 100%; /* 이미지 박스 너비 100% */
+    height: 527px; /* 이미지 박스 높이 100% */
+    overflow: hidden; /* 넘치는 부분 숨기기 */
+    border-radius: 10px;
+}
+.img-box img {
+    width: 100%; /* 이미지 너비 100% */
+    height: auto; /* 비율 유지 */
+    max-height: 527px; /* 최대 높이 설정 */
+    object-fit: cover; /* 비율 유지하며 영역에 맞게 조정 */
+    border-radius: 10px;
+}
+.slides .section1 .slide-con {
+    position:relative;
+}
+.slides .section1 > .slide-con > .slide-tags {
+    position:absolute;
+    bottom: 19%; /* 하단에서 10% 위치 */
+    left: 5%; /* 중앙 정렬 */
+    transform:none; /*중앙정렬*/
+    z-index:50;
+    text-align: left; /* 텍스트 중앙 정렬 */
+}
+
+.tags {
+    display: flex;
+    justify-content: center; /* 태그들을 가운데 정렬 */
+    flex-wrap: wrap; /* 여러 줄로 넘어갈 경우에도 자동으로 줄바꿈 */
+    gap: 5px; /* 태그 간의 간격 설정 */
+    margin-top: 20px; /* 위쪽에 약간의 여백 추가 */
+}
+
+
+.slides .section1 > .slide-con > .slide-desc {
+    position:absolute;
+    bottom: 10%; /* 하단에서 10% 위치 */
+    left: 5%; /* 중앙 정렬 */
+    transform:none; /*중앙정렬*/
+    z-index:50;
+    text-align: left; /* 텍스트 중앙 정렬 */
+    color: #fff;
+}
+.slides .section1 > .slide-con > .slide-txt {
+    position:absolute;
+    bottom: 5%; /* 하단에서 10% 위치 */
+    left: 5%; /* 중앙 정렬 */
+    transform:none; /*중앙정렬*/
+    z-index:50;
+    text-align: left; /* 텍스트 중앙 정렬 */
+    color: #fff;
+}
+
+.slides .section1 > .slide-con > .slide-tags .tag-tt {
+    font-size: 16px;
+    display: inline-block;
+    padding: 3px;
+    border-radius: 5px;
+    color: #fff;
+    background-color: rgba(0,0,0,0.6);
+}
+.slides .section1 > .slide-con > .slide-desc > h4.desc-tt {
+    /*font-size:25px;*/
+    text-shadow: 2px 2px 7px rgba(0, 0, 0, 0.8);
+}
+.slides .section1 > .slide-con > .slide-txt > h5.txt-tt {
+    font-size:20px;
+    text-shadow: 1px 1px 4px rgba(0, 0, 0, 0.8);
+}
+
+/* 페이지 버튼 */
+.slides .slick-dots {
+    font-size:0;
+    position:absolute;
+    left:50%;
+    bottom:20px;
+    transform:translatex(-50%);
+    width:100%;
+    text-align: center;
+    z-index:50;
+}
+.slides .slick-dots > li {
+    display: inline-block; /* 인라인 블록으로 변경 */
+    margin: 0 5px; /* 도트 간의 간격 조정 */
+}
+.slides .slick-dots > li > button {
+    width:10px;
+    height:10px;
+    border-radius: 50%;
+    background-color:rgba(255,255,255,.3);
+    outline:none;
+    border: none;
+    position:relative;
+    color:inherit;
+    font-size: 0;
+}
+.slides .slick-dots > li.slick-active > button {
+    background-color: #fff; /* 활성화된 도트 색상 */
+}
+
+.novel-container {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 20px;
+    padding: 20px;
+}
+.novel-card {
+    width: 200px;
+    overflow: hidden;
+    transition: transform 0.2s;
+    text-align: center;
+    padding: 5px;
+}
+.novel-card img {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+}
+.novel-title {
+    font-size: 16px;
+    font-weight: bold;
+    margin: 10px 0;
+}
+.novel-author {
+    color: #555;
+    font-size: 14px;
+    margin-bottom: 10px;
+}

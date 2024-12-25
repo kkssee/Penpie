@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/thymeleaf-extras-springsecurity6" lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>User Profile</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0-beta3/css/all.min.css">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/gh/routekick/calmosaic@2.1.0/dist/jquery.calmosaic.min.css" />
+    <link rel="icon" href="data:;base64,iVBORw0KGgo=">
+
+    <style>
+        /* 공통 스타일 */
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            flex-direction: column;
+            align-items: center; /* 수직 중앙 정렬 */
+        }
+
+        h1 {
+            text-align: center; /* 텍스트 중앙 정렬 */
+            margin: 20px 0; /* 상하 여백 */
+        }
+        /* 탭 스타일 */
+        .tabs {
+            display: flex;
+            cursor: pointer;
+            justify-content: center; /* 탭 버튼 중앙 정렬 */
+            margin-bottom: 20px; /* 탭과 콘텐츠 사이의 여백 */
+        }
+
+        .tab-button {
+            padding: 10px;
+            margin-right: 5px;
+            background-color: #f1f1f1;
+            border: 1px solid #ccc;
+            border-radius: 5px 5px 0 0;
+        }
+
+        .tab-button.active {
+            background-color: #ddd;
+            font-weight: bold;
+        }
+
+        .tab-content {
+            display: none;
+            padding: 10px;
+            border: 1px solid #ccc;
+            border-top: none;
+        }
+
+        .tab-content.active {
+            display: block;
+        }
+
+        /* 좋아요 버튼 스타일 */
+        .like-btn {
+            padding: 5px 10px;
+            background-color: #5cb85c;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 14px;
+        }
+
+        .like-btn:hover {
+            background-color: #4cae4c; /* hover 시 색상 변화 */
+        }
+
+
+        .like-btn {
+            color: #fff;
+            border: none;
+            padding: 10px 15px;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 16px;
+        }
+
+        .like-btn:hover {
+            color: white;
+            background: none;
+        }
+
+        .profile-container {
+            display: flex;
+            justify-content: center;
+            margin-bottom: 20px; /* 프로필 이미지와 다른 요소 간의 간격 */
+        }
+
+        .profile-img {
+            width: 50px; /* 원하는 이미지 크기 */
+            height: 50px; /* 1:1 비율 유지 */
+            object-fit: cover; /* 이미지가 원형에 맞게 잘리도록 설정 */
+            border-radius: 50%; /* 원형으로 만들기 */
+            border: 2px solid #ddd; /* 외곽선 */
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1); /* 그림자 효과 */
+        }
+
+    </style>
+
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"
+            integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo="
+            crossorigin="anonymous"></script>
+    <script>
+        $(document).ready(function() {
+            // 서버에서 받은 탭 정보
+            var defaultTab = $('#defaultTab').val();
+            // 탭 버튼 클릭 시 해당 콘텐츠를 표시
+            $(".tab-button").click(function() {
+                var tab = $(this).data("tab");
+
+                // 모든 탭 버튼과 콘텐츠를 초기화
+                $(".tab-button").removeClass("active");
+                $(".tab-content").removeClass("active");
+
+                // 선택된 탭 버튼과 콘텐츠 활성화
+                $(this).addClass("active");
+                $("#" + tab).addClass("active");
+            });
+
+            // 페이지 로드 시 기본으로 열 탭 결정
+            if (defaultTab) {
+                $(".tab-button[data-tab=" + defaultTab + "]").addClass("active");
+                $("#" + defaultTab).addClass("active");
+            } else {
+                // 기본값이 없을 때 'follower' 탭을 기본으로 설정
+                $(".tab-button[data-tab='follower']").addClass("active");
+                $("#follower").addClass("active");
+            }
+
+            $(document).on('click', '.subscribe-btn', function () {
+                const authorno = $(this).data('id');
+                const subscribed = $(this).data('subscribed');
+                $.ajax({
+                    url: '/subscribeAuthor',
+                    method: 'POST',
+                    data: {
+                        authorno: authorno,
+                        subscribed: subscribed
+                    },
+                    success: function (response) {
+                        if (response.success) {
+                            const button = $(`button[data-id="${authorno}"]`);
+                            button.text(response.liked ? 'Unfollow' : 'Follow');
+                            button.data('subscribed', response.subscribed);
+                            location.reload();
+                        } else {
+                            alert('Failed. Please try later.');
+                        }
+                    },
+                    error: function (xhr, status, err) {
+                        alert('Failed. Please try later.');
+                    }
+                });
+            });
+        });
+    </script>
+</head>
+<body>
+<input type="hidden" id="defaultTab" , th:value="${defaultTab}">
+<div class="tabs">
+    <div class="tab-button" data-tab="follower">follower</div>
+    <div class="tab-button" data-tab="following">following</div>
+</div>
+
+<div id="follower" class="tab-content">
+    <div th:each="follower : ${followerList}">
+        <img class="profile-img" th:src="${follower.profileImg != null ? '/img/profileImg/' + follower.profileImg : '/img/profileImg/defaultProfilePic.jpg'}" alt="Profile Image">
+        <a th:href="@{|/profile/${follower.userno}|}">[[${follower.nickname}]]</a>
+        <span th:if="${follower.userno != viewerUserNo}">
+            <button class="icon-button subscribe-btn"
+                    th:data-id="${follower.userno}"
+                    th:data-subscribed="${follower.isSubscribed}">
+                <span th:text="${follower.isSubscribed == 1 ? 'Unfollow' : 'Follow'}"></span>
+            </button>
+        </span>
+    </div>
+</div>
+<div id="following" class="tab-content">
+    <div th:each="following : ${followingList}">
+        <img class="profile-img" th:src="${following.profileImg != null ? '/img/profileImg/' + following.profileImg : '/img/profileImg/defaultProfilePic.jpg'}" alt="Profile Image">
+        <a th:href="@{|/profile/${following.userno}|}">[[${following.nickname}]]</a>
+        <span th:if="${following.userno != viewerUserNo}">
+            <button class="icon-button subscribe-btn"
+                    th:data-id="${following.userno}"
+                    th:data-subscribed="${following.isSubscribed}">
+                <span th:text="${following.isSubscribed == 1 ? 'Unfollow' : 'Follow'}"></span>
+            </button>
+        </span>
+    </div>
+</div>
+
+
+</body>
+</html>

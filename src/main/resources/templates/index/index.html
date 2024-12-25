@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org"
+      xmlns:sec="http://www.thymeleaf.org/extras/thymeleaf-extras-springsecurity6" lang="en">
+<head>
+    <title>PenPie</title>
+    <meta charset="UTF-8" />
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"
+            integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo="
+            crossorigin="anonymous"></script>
+
+    <!-- Sidebar -->
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <script src="https://unpkg.com/@phosphor-icons/web"></script>
+
+    <!-- Banner -->
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/xeicon@2.3.3/xeicon.min.css">
+    <link rel="icon" href="data:;base64,iVBORw0KGgo=">
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/slick-carousel@1.8.1/slick/slick.css"/>
+    <script src="https://cdn.jsdelivr.net/npm/slick-carousel@1.8.1/slick/slick.min.js"></script>
+
+    <!-- stylesheet -->
+    <link rel="stylesheet" th:href="@{/css/index.css}">
+    <link rel="stylesheet" th:href="@{/css/header.css}">
+    <link rel="stylesheet" th:href="@{/css/sidebar.css}">
+    <link rel="stylesheet" th:href="@{/css/characterCreateForm.css}">
+</head>
+<body>
+<div class="container">
+    <div th:insert="~{fragments/sidebar :: sidebar}"></div>
+    <header>
+        <div th:insert="~{fragments/header :: header}"></div>
+    </header>
+    <div class="contents">
+        <div class="slidewrap">
+            <div class="slides">
+                <div th:each="banner : ${list}" class="section1 slide">
+                    <div class="slide-con">
+                        <picture class="img-box">
+                            <a th:href="|${banner.ba_link}|"><img th:src="@{'/img/banner/' + ${banner.ba_img}}" alt="Banner Image"></a>
+                        </picture>
+                        <div class="slide-tags">
+                            <div class="tags">
+                                <span class="tag-tt" th:each="tag: ${banner.tags}">#[[${tag}]]</span>
+                            </div>
+                        </div>
+                        <div class="slide-desc">
+                            <h4 class="desc-tt">[[${banner.ba_desc}]]</h4>
+                        </div>
+                        <div class="slide-txt">
+                            <h5 class="txt-tt">[[${banner.ba_text}]]</h5>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div><br>
+
+        <p>Trending comments</p>
+        <div id="commentsContainer"></div>
+
+        <div>
+            <button onclick="setTheme('light')">Light Mode</button>
+            <button onclick="setTheme('dark')">Dark Mode</button>
+            <button onclick="setTheme('system')">System Default</button>
+        </div><br>
+        <div th:insert="~{fragments/characterCreateForm :: chatBotCreateForm}"></div>
+        <div class="novel-container" th:if="${lastReadNovels != null || !lastReadNovels.isEmpty()}" sec:authorize="isAuthenticated()">
+            Continue reading
+            <div th:if="${lastReadNovels == null || lastReadNovels.isEmpty()}">
+                <br>There is no recently read works
+            </div>
+            <div class="novel-card" th:each="nv:${lastReadNovels}">
+                <a th:href="@{|/novel/episode/${nv.ep_id}|}" style="text-decoration: none; color: inherit;">
+                    <img th:src="@{'/img/cover/' + ${nv.cover_path}}" alt="CoverImage">
+                    <p style="text-align: left">Continue to read Ep.[[${nv.episode_number}]]</p>
+                    <div style="text-align: left" class="novel-title">
+                        [[${nv.nv_title}]]
+                    </div>
+                    <div style="text-align: left" class="novel-author">[[${nv.nickname}]]</div>
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+<script th:src="@{/js/index.js}"></script>
+<script th:src="@{/js/header.js}"></script>
+<script th:src="@{/js/sidebar.js}"></script>
+<script th:src="@{/js/characterCreateForm.js}"></script>
+</html>

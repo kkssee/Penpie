@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<script src="https://code.jquery.com/jquery-3.7.1.min.js"
+        integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo="
+        crossorigin="anonymous"></script>
+<script type="text/javascript">
+    function addEp() {
+        var form = $('#epAddForm')[0];
+        var data = new FormData(form);
+
+        const nv_id = $('#nv_id').val();
+        // Quill 에디터 FormData에 추가
+        var editorContent = quill.root.innerHTML;
+        data.append('editorContent', editorContent);
+
+        $('#btnUpload').prop('disabled', true);
+        $.ajax({
+            enctype: 'multipart/form-data',
+            url: '/novel/epup/' + nv_id,
+            method: 'POST',
+            cache: false,
+            data: data,
+            dataType: 'json',
+            processData: false,
+            contentType: false,
+            timeout: 600000,
+            success: function(res) {
+                if (res.uploaded != null) {
+                    alert('업로드 성공');
+                    location.href = '/novel/episode/' + res.ep_id;
+                } else alert('업로드 실패');
+            },
+            error: function(xhr, status, err) {
+                alert('uperr: ' + err);
+                $('#btnUpload').prop('disabled', false);
+            }
+        });
+    }
+
+
+</script>
+<head>
+    <meta charset="UTF-8">
+    <title>Episode upload form</title>
+    <link href="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.snow.css" rel="stylesheet" />
+    <style>
+        /* 툴바를 스크롤에 따라 고정 */
+        .ql-toolbar {
+            position: sticky; /* 스크롤에 따라 고정 */
+            top: 0; /* 상단에 위치 */
+            z-index: 1000; /* 다른 요소 위에 배치 */
+            background-color: #fff; /* 배경색 설정 */
+            border-bottom: 1px solid #ccc; /* 하단 테두리 추가 */
+        }
+
+    </style>
+</head>
+<body>
+<main>
+    <h2 style="text-align: center;">에피소드 업로드폼</h2>
+    <form id="epAddForm" enctype="multipart/form-data" th:object="${episode}">
+        <div><input type="hidden" id="nv_id" th:value="*{nv_id}"></div>
+        <div><label for="ep_title">소제목</label>
+            <input type="text" id="ep_title" name="ep_title" th:field="*{ep_title}"></div><br>
+        <div class="editor-container">
+            <div id="editor" th:field="*{ep_contents}"></div>
+        </div>
+    </form><br>
+    <button id="btnUpload" onclick="addEp();">제출</button>
+</main>
+<script src="https://cdn.jsdelivr.net/npm/quill@2.0.2/dist/quill.js"></script>
+<!-- Initialize Quill editor with additional functionalities -->
+<script>
+    const quill = new Quill('#editor', {
+        modules: {
+            toolbar: [
+                [{ 'font': [] }], // 폰트 및 크기 설정
+                [{ 'size': [false, 'large'] }],  // 글씨 크기 설정 옵션
+                ['bold', 'italic', 'underline', 'strike'], // 굵게, 기울임, 밑줄, 취소선
+                ['blockquote'], // 인용구
+                [{ 'list': 'bullet' }], // 목록
+                [{ 'align': '' }, { 'align': 'center' }, { 'align': 'right' }, { 'align': 'justify' }],
+                ['link', 'image', 'video'] // 링크, 이미지, 비디오
+            ],
+            clipboard: true // 클립보드 모듈 활성화
+        },
+        placeholder: '여기에 내용을 입력하세요...', // 플레이스홀더 텍스트
+        theme: 'snow',
+    });
+
+    // 이미지 업로드 핸들러
+    quill.getModule('toolbar').addHandler('image', function() {
+        const input = document.createElement('input');
+        input.setAttribute('type', 'file');
+        input.accept = 'image/*';
+        input.multiple = true;
+        input.click();
+
+        input.onchange = function() {
+            const files = input.files;
+
+            Array.from(files).forEach(file => {
+                const ext = file.name.split(".").pop().toLowerCase();
+
+                const allowedExtensions = ["gif", "jpg", "jpeg", "png", "bmp"];
+                if (!allowedExtensions.includes(ext)) {
+                    alert("jpg, jpeg, png, bmp, gif 파일만 업로드 가능합니다.");
+                    return;
+                }
+
+                const fileSize = file.size;
+                const maxSize = 20 * 1024 * 1024;
+
+                if (fileSize > maxSize) {
+                    alert("업로드 가능한 최대 이미지 용량은 20MB입니다.");
+                    return;
+                }
+
+                const formData = new FormData();
+                formData.append('uploadFile', file);
+
+                $.ajax({
+                    type: 'POST',
+                    enctype: 'multipart/form-data',
+                    url: '/novel/imgs',
+                    data: formData,
+                    processData: false,
+                    contentType: false,
+                    dataType: 'text',
+                    success: function (data) {
+                        const range = quill.getSelection();
+                        const cleanFileName = data.replace(/[\[\]"]+/g, '');
+                        const encodedFileName = encodeURIComponent(cleanFileName);
+                        quill.insertEmbed(range.index, 'image', "/novel/display?fileName=" + encodedFileName);
+                    },
+                    error: function (err) {
+                        console.log('ERROR!! ::');
+                        console.log(err);
+                    }
+                });
+            });
+        };
+    });
+
+    // 이미지 삭제
+    quill.on('text-change', function(delta, oldDelta, source) {
+        if (source !== 'user') return; // 사용자가 직접 변경한 경우에만 처리
+
+        // 이미지 삭제를 감지하기 위한 부분만 처리
+        const oldImages = extractImageUrls(oldDelta);  // 기존 이미지 목록
+        const newImages = extractImageUrls(quill.getContents());  // 현재 에디터의 이미지 목록
+
+        // 기존에는 있었지만 현재는 없는 이미지(삭제된 이미지)를 찾아 처리
+        oldImages.forEach(oldImage => {
+            if (!newImages.includes(oldImage)) {
+                handleImageDelete(oldImage);  // 삭제된 이미지만 처리
+            }
+        });
+    });
+
+    // Delta에서 이미지 URL 추출
+    function extractImageUrls(delta) {
+        return delta.ops
+            .filter(op => op.insert && op.insert.image)
+            .map(op => op.insert.image);
+    }
+
+    // 이미지 삭제 요청 처리
+    function handleImageDelete(imageUrl) {
+        const fileName = imageUrl.split('/').pop().split('?fileName=').pop();
+        if (fileName) {
+            fetch(`/novel/deleteImg?fileName=${fileName}`, {
+                method: 'DELETE'
+            })
+                .then(response => response.text())
+                .then(result => {
+                    console.log('이미지 삭제 성공:', result);
+                })
+                .catch(error => {
+                    console.error('이미지 삭제 실패:', error);
+                });
+        }
+    }
+</script>
+</body>
+
+</html>

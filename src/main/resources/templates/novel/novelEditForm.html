@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <title>novel upload form</title>
+
+    <!-- Tagify CSS -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/tagify/4.0.0/tagify.min.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f4f4f4;
+            margin: 0;
+            padding: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min_height: 100vh;
+        }
+
+        main {
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            width: 500px;
+            box-sizing: border-box;
+        }
+
+        h3 {
+            text-align: center;
+            margin-bottom: 20px;
+        }
+
+        form {
+            display: flex;
+            flex-direction: column;
+        }
+
+        form div {
+            margin-bottom: 15px;
+        }
+
+        label {
+            font-weight: bold;
+            margin-bottom: 5px;
+            display: block;
+        }
+
+        input[type="text"],
+        input[type="number"],
+        textarea {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+
+        textarea {
+            height: 100px;
+            resize: none;
+        }
+
+        input[type="file"] {
+            padding: 8px;
+        }
+
+        button {
+            padding: 10px 15px;
+            background-color: #4CAF50;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            cursor: pointer;
+            margin-top: 10px;
+        }
+
+        button[type="reset"] {
+            background-color: #f44336;
+            margin-right: 10px;
+        }
+
+        button:hover {
+            opacity: 0.9;
+        }
+
+        #image_container {
+            text-align: center;
+            margin-top: 10px;
+        }
+
+        #image_container img {
+            max-width: 100%;
+            max-height: 300px;
+            border-radius: 8px;
+        }
+
+        .tagify__input {
+            width: 100%;
+            padding: 8px;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+            box-sizing: border-box;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;  /* 모든 요소의 박스 크기를 포함하도록 설정 */
+        }
+
+    </style>
+
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"
+            integrity="sha256-/JqT3SQfawRcv/BIHPThkBvs0OEvtFFmqPF/lYI/Cxo=" crossorigin="anonymous"></script>
+    <!-- Tagify JavaScript -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/tagify/4.0.0/tagify.min.js"></script>
+</head>
+<body>
+
+<main>
+    <h3>소설 수정 폼</h3>
+    <form id="nvEditForm" enctype="multipart/form-data" th:object="${nv}">
+        <input type="hidden" id="nv_id" name="nv_id" th:value="${nv.nv_id}">
+        <div>
+            <label>연재 여부</label><br>
+            <div style="display: flex; gap: 10px;">
+                <label>
+                    <input type="radio" id="ongoing" name="is_completed" value="0" th:checked="${nv.is_completed == 0}">
+                    연재
+                </label>
+                <label>
+                    <input type="radio" id="completed" name="is_completed" value="1" th:checked="${nv.is_completed == 1}">
+                    완결
+                </label>
+            </div>
+        </div>
+        <div>
+            <label for="is_Secret">작품종류 선택</label>
+            <select id="is_secret" name="is_secret">
+                <option th:value="0" th:selected="${nv.is_secret == 0}">무료연재</option>
+                <option th:value="1" th:selected="${nv.is_secret == 1}">비공개</option>
+                <option th:value="2" th:selected="${nv.is_secret == 2}">유료연재</option>
+            </select>
+        </div>
+
+        <div>
+            <label>성인물 여부</label><br>
+            <div style="display: flex; gap: 10px;">
+                <label>
+                    <input type="radio" id="notAdult" name="notAdult" value="0" th:checked="${nv.is_adult == 0}">
+                    전연령가
+                </label>
+                <label>
+                    <input type="radio" id="is_adult" name="is_adult" value="1" th:checked="${nv.is_adult == 1}">
+                    성인물
+                </label>
+            </div>
+        </div>
+        <div>
+            <label for="nvctg_name">카테고리 선택</label>
+            <select id="nvctg_name" name="nvctg_name">
+                <option th:each="category : ${categories}"
+                        th:value="${category}"
+                        th:text="${category}"
+                        th:selected="${category == nv.nvctg_name}">
+                </option>
+            </select>
+        </div>
+
+        <div><label for="nv_title">작품명</label><input type="text" id="nv_title" name="nv_title" th:value="${nv.nv_title}"></div>
+        <div><label for="nv_desc">작품소개</label>
+            <textarea id="nv_desc" name="nv_desc" th:text="${nv.nv_desc}"></textarea></div>
+        <div>
+            <label>태그 입력</label>
+            <input type="text" id="nvtag_name" name="nvtag_name"
+                   placeholder="write some tags"
+                   th:value="${#strings.arrayJoin(nv.nvtag_name, ',')}" />
+        </div>
+        <div>
+            <label>커버 이미지</label><br>
+            <input type="file" id="file" name="file" accept="image/*" required onchange="setCoverImage(this)">
+            <div id="image_container">
+                <img th:src="@{'/img/cover/' + ${nv.cover_path}}" alt="Cover Image">
+            </div>
+        </div>
+    </form>
+    <button type="reset">reset</button>
+    <button id="nvEdit">제출</button>
+</main>
+
+<script type="text/javascript">
+    $(document).ready(function() {
+        // Initialize Tagify on the input element
+        var input = document.querySelector('input[name=nvtag_name]');
+        var tagify = new Tagify(input);
+
+        var existingTags = $('#nvtag_name').val();
+        var tagArray = JSON.parse(existingTags);
+        var tagValues = tagArray.map(tag => tag.value);
+
+        $('#cover_path').on('change', function () {
+            validateFileType(this);
+        });
+
+        $('#nvEdit').on('click', function(e) {
+            e.preventDefault();
+            EditNovel(tagify, tagValues); // 수정된 함수 호출
+        });
+    });
+
+    function setCoverImage(input) {
+        var file = input.files[0];  // input에서 파일 정보 가져오기
+        if (file) {
+            var reader = new FileReader();
+
+            reader.onload = function(event) {
+                var img = document.createElement("img");
+                img.setAttribute("src", event.target.result);
+                document.querySelector("div#image_container").innerHTML = "";  // 기존 이미지 제거
+                document.querySelector("div#image_container").appendChild(img);
+            };
+            reader.readAsDataURL(file);
+        }
+    }
+
+    function EditNovel(tagify, tagValues) {
+        var form = $('#nvEditForm')[0];
+        var data = new FormData(form);
+
+        // Get textarea value and replace newlines with <br>
+        var nvDesc = data.get('nv_desc');
+        var updatedNvDesc = nvDesc.replace(/\r?\n/g, '<br>');
+        data.set('nv_desc', updatedNvDesc);
+
+        // Process Tagify data
+        var tagifyData = tagify.value;  // tagify의 데이터를 배열로 가져옴
+        var newTagsArray = tagifyData.map(tag => tag.value);  // 새로운 태그 배열
+
+        // 추가된 태그 및 삭제된 태그 계산
+        var tagsAdded = newTagsArray.filter(tag => !tagValues.includes(tag));
+        var tagsRemoved = tagValues.filter(tag => !newTagsArray.includes(tag));
+
+        data.set('tagsAdded', tagsAdded.join(','));  // 추가된 태그
+        data.set('tagsRemoved', tagsRemoved.join(','));  // 삭제된 태그
+
+        $('#nvEdit').prop('disabled', true);
+        $.ajax({
+            enctype: 'multipart/form-data',
+            url : '/novel/nvedit',
+            method : 'POST',
+            cache : false,
+            data : data,
+            dataType : 'json',
+            processData: false,
+            contentType: false,
+            timeout: 600000,
+            success : function(res) {
+                if(res.edited != null) {
+                    alert('수정 성공');
+                    location.href = '/novel/list';
+                } else {
+                    alert('수정 실패');
+                }
+            },
+            error : function(xhr, status, err) {
+                alert('uperr: ' + err);
+                $('#nvEdit').prop('disabled', false);
+            }
+        });
+    }
+
+    function validateFileType(fileInput) {
+        const file = fileInput.files[0];
+        if (file) {
+            const fileType = file.type;
+            const allowedTypes = ['image/jpeg', 'image/png', 'image/gif'];
+
+            if (!allowedTypes.includes(fileType)) {
+                alert("올바른 파일 형식이 아닙니다. JPG, PNG 또는 GIF 파일을 업로드하세요.");
+                fileInput.value = '';  // 파일 입력 초기화
+            }
+        }
+    }
+</script>
+
+</body>
+</html>

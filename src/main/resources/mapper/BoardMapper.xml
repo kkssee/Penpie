@@ -1,0 +1,221 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+        "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="com.test.board.BoardMapper">
+    <insert id="addPost" parameterType="com.test.board.Post">
+        INSERT INTO post (post_id, post_cont, user_no, post_title, post_date, views, plike, b_category_id)
+        SELECT post_seq.NEXTVAL, #{content}, u.userno, #{title}, #{date}, 0, 0, #{b_category_id}
+        FROM users u WHERE u.userno = #{userno}
+    </insert>
+
+    <select id="getGeneratedPostId" parameterType="com.test.board.Post" resultType="int">
+        SELECT post_id AS postid
+        FROM post p JOIN users u ON p.user_no = u.userno
+        WHERE p.post_date = #{date} AND u.userno = #{userno}
+    </select>
+
+    <select id="getPost" resultType="com.test.board.Post">
+        SELECT p.post_id AS postid, p.post_title AS title, p.post_cont AS content, p.post_date AS "date", u.nickname , c.cate_name, p.b_category_id , p.user_no AS userno
+        FROM post p
+                 INNER JOIN users u ON p.user_no = u.userno
+                 INNER JOIN b_categorycode c ON c.b_category_id = p.b_category_id
+        WHERE p.post_id = #{postId}
+    </select>
+
+    <select id="getList"  parameterType="com.test.board.Board" resultType="com.test.board.Post">
+        SELECT p.post_id AS postid, p.post_title AS title, p.post_date AS "date", p.views, p.plike, COUNT(c.b_comment_id) AS tcoment, u.nickname
+        FROM post p
+                 LEFT JOIN b_comment c ON p.post_id = c.post_id
+                 INNER JOIN users u ON u.userno = p.user_no
+        WHERE p.b_category_id = #{b_categoryid}
+        GROUP BY p.post_id, p.post_title, p.post_date, p.views, p.plike, u.nickname
+        ORDER BY p.post_id DESC
+
+    </select>
+
+    <update id="updatePost" parameterType="com.test.board.Post">
+        UPDATE post SET post_title = #{title}, post_cont = #{content}, post_update = #{update} WHERE post_id = #{postid}
+    </update>
+
+    <delete id="deleteBoardImages" parameterType="java.util.List">
+        DELETE FROM b_img WHERE imgid IN
+        <foreach item="imgId" collection="imgIdList" open="(" separator="," close=")">
+            #{imgId}
+        </foreach>
+    </delete>
+
+    <delete id="deletePost">
+        DELETE FROM post WHERE post_id = #{postid}
+    </delete>
+
+    <delete id="deleteBComment">
+        DELETE FROM b_comment WHERE post_id = #{postid}
+    </delete>
+
+    <insert id="inputLike">
+        UPDATE post SET plike = plike +1 WHERE post_id = #{postid}
+    </insert>
+
+    <insert id="inputViews">
+        UPDATE post SET views = views +1 WHERE post_id = #{postid}
+    </insert>
+
+    <select id="freelistByTitle" parameterType="String" resultType="com.test.board.Post">
+        SELECT p.post_id AS postid, p.post_title AS title, p.post_date AS "date", p.views, p.plike, COUNT(c.b_comment_id) AS tcoment, u.nickname
+        FROM post p LEFT JOIN b_comment c ON p.post_id = c.post_id INNER JOIN users u ON u.userno = p.user_no
+        WHERE p.post_title LIKE #{keyword} AND p.b_category_id = 1
+        GROUP BY p.post_id, p.post_title, p.post_date, p.views, p.plike, u.nickname ORDER BY p.post_id DESC
+    </select>
+
+    <select id="freelistByTitleANDCont" parameterType="String" resultType="com.test.board.Post">
+        SELECT p.post_id AS postid, p.post_title AS title, p.post_date AS "date", p.views, p.plike, COUNT(c.b_comment_id) AS tcoment, u.nickname
+        FROM post p LEFT JOIN b_comment c ON p.post_id = c.post_id
+                    INNER JOIN users u ON u.userno = p.user_no
+        WHERE (p.post_title LIKE #{keyword} OR p.post_cont LIKE #{keyword})
+          AND p.b_category_id = 1
+        GROUP BY p.post_id, p.post_title, p.post_date, p.views, p.plike, u.nickname ORDER BY p.post_id DESC
+    </select>
+
+    <select id="freelistByCont" parameterType="String" resultType="com.test.board.Post">
+        SELECT p.post_id AS postid, p.post_title AS title, p.post_date AS "date", p.views, p.plike,  COUNT(c.b_comment_id) AS tcoment,u.nickname
+        FROM post p LEFT JOIN b_comment c ON p.post_id = c.post_id
+                    INNER JOIN users u ON u.userno = p.user_no WHERE p.post_cont LIKE#{keyword} AND p.b_category_id = 1
+        GROUP BY p.post_id, p.post_title, p.post_date, p.views, p.plike, u.nickname ORDER BY p.post_id DESC
+    </select>
+
+    <select id="replylistByTitle" parameterType="String" resultType="com.test.board.Post">
+        SELECT p.post_id AS postid, p.post_title AS title, p.post_date AS "date", p.views, p.plike, COUNT(c.b_comment_id) AS tcoment, u.nickname
+        FROM post p LEFT JOIN b_comment c ON p.post_id = c.post_id
+                    INNER JOIN users u ON u.userno = p.user_no
+        WHERE p.post_title LIKE #{keyword} AND p.b_category_id = 2
+        GROUP BY p.post_id, p.post_title, p.post_date, p.views, p.plike, u.nickname  ORDER BY p.post_id DESC
+    </select>
+
+    <select id="replylistByTitleANDCont" parameterType="String" resultType="com.test.board.Post">
+        SELECT p.post_id AS postid, p.post_title AS title, p.post_date AS "date", p.views, p.plike,
+               COUNT(c.b_comment_id) AS tcoment, u.nickname FROM post p
+                                                                     LEFT JOIN b_comment c ON p.post_id = c.post_id
+                                                                     INNER JOIN users u ON u.userno = p.user_no
+        WHERE (p.post_title LIKE #{keyword} OR p.post_cont LIKE #{keyword})AND p.b_category_id = 2
+        GROUP BY p.post_id, p.post_title, p.post_date, p.views, p.plike, u.nickname
+        ORDER BY p.post_id DESC
+    </select>
+
+    <select id="replylistByCont" parameterType="String" resultType="com.test.board.Post">
+        SELECT p.post_id AS postid, p.post_title AS title, p.post_date AS "date", p.views, p.plike,
+               COUNT(c.b_comment_id) AS tcoment, u.nickname FROM post p
+                                                                     LEFT JOIN b_comment c ON p.post_id = c.post_id
+                                                                     INNER JOIN users u ON u.userno = p.user_no
+        WHERE p.post_cont LIKE #{keyword} AND p.b_category_id = 2
+        GROUP BY p.post_id, p.post_title, p.post_date, p.views, p.plike, u.nickname
+        ORDER BY p.post_id DESC
+    </select>
+
+    <insert id="saveComment">
+        INSERT INTO b_comment (b_comment_id, post_id, user_no, parentno, b_comment, create_dt, groupno, depthno, orderno)
+        VALUES (
+                       (SELECT NVL(MAX(b.b_comment_id), 0) + 1 FROM b_comment b), #{postId}, #{userNo},0,
+                       #{comment}, #{createDt},(SELECT NVL(MAX(b.b_comment_id), 0) + 1 FROM b_comment b),
+                       0, 0 )
+    </insert>
+
+    <select id="selectComment" resultType="java.util.Map">
+        SELECT * FROM b_comment WHERE b_comment_id = #{bCommentId}
+    </select>
+
+    <select id="selectMaxOrderNo" resultType="int">
+        SELECT NVL(MAX(orderno), 0) + 1 FROM b_comment WHERE post_id = #{postid} AND groupno = #{groupno}
+    </select>
+
+    <select id="countChild" parameterType="int" resultType="int">
+        SELECT COUNT(*) FROM b_comment WHERE parentNo = #{parentId}
+            CONNECT BY PRIOR b_comment_id = parentno START WITH b_comment_id = #{parentId}
+    </select>
+
+    <update id="updateCommentByNo">
+        UPDATE b_comment SET orderno = orderno + 1 WHERE post_id = #{postId}
+                                                     AND groupno = #{groupNo} AND orderno > #{orderNo}
+    </update>
+
+    <insert id="insetReply">
+        INSERT INTO b_comment (b_comment_id, post_id, user_no, parentno, b_comment, create_dt, groupno, depthno, orderno)
+        VALUES ((SELECT NVL(MAX(b.b_comment_id), 0) + 1 FROM b_comment b), #{postId}, #{userNo}, #{parentNo}, #{comment}, #{createDt}, #{groupno}, #{depthno}, #{orderno})
+    </insert>
+
+    <select id="getCommentList" resultType="com.test.board.BComment">
+        SELECT b.*,(SELECT nickname FROM users u WHERE u.userno = b.user_no)nickname FROM b_comment b WHERE post_id = #{postId} ORDER BY groupno, orderno, depthno
+    </select>
+
+    <delete id="deleteCommentByCid">
+        DELETE FROM b_comment WHERE b_comment_id = #{commentId}
+    </delete>
+
+    <select id="getBestList" resultType="com.test.board.Post">
+        <![CDATA[
+        SELECT postid, title, "date", views, plike, tcoment, nickname
+        FROM (
+                 SELECT p.post_id AS postid, p.post_title AS title, p.post_date AS "date", p.views, p.plike,
+                        COUNT(c.b_comment_id) AS tcoment, u.nickname
+                 FROM post p
+                          LEFT JOIN b_comment c ON p.post_id = c.post_id
+                          INNER JOIN users u ON u.userno = p.user_no
+                 GROUP BY p.post_id, p.post_title, p.post_date, p.views, p.plike, u.nickname
+                 ORDER BY p.views DESC
+             )
+        WHERE ROWNUM <= 10
+        ORDER BY "date" DESC
+        ]]>
+    </select>
+
+    <select id="getBestByTitle" parameterType="String" resultType="com.test.board.Post">
+    <![CDATA[
+        SELECT postid, title, "date", views, plike, tcoment, nickname
+        FROM (
+                 SELECT p.post_id AS postid, p.post_title AS title, p.post_date AS "date", p.views, p.plike,
+                        COUNT(c.b_comment_id) AS tcoment, u.nickname
+                 FROM post p
+                          LEFT JOIN b_comment c ON p.post_id = c.post_id
+                          INNER JOIN users u ON u.userno = p.user_no
+                 WHERE p.post_title LIKE #{keyword}
+                 GROUP BY p.post_id, p.post_title, p.post_date, p.views, p.plike, u.nickname
+                 ORDER BY p.views DESC
+             )
+        WHERE ROWNUM <= 10
+        ORDER BY "date" DESC
+        ]]>
+    </select>
+    <select id="getBestByTitileANDCont" parameterType="String" resultType="com.test.board.Post">
+         <![CDATA[
+        SELECT postid, title, "date", views, plike, tcoment, nickname
+        FROM (
+                 SELECT p.post_id AS postid, p.post_title AS title, p.post_date AS "date", p.views, p.plike,
+                        COUNT(c.b_comment_id) AS tcoment, u.nickname
+                 FROM post p
+                          LEFT JOIN b_comment c ON p.post_id = c.post_id
+                          INNER JOIN users u ON u.userno = p.user_no
+                 WHERE p.post_title LIKE #{keyword} OR p.post_cont LIKE #{keyword}
+                 GROUP BY p.post_id, p.post_title, p.post_date, p.views, p.plike, u.nickname
+                 ORDER BY p.views DESC
+             )
+        WHERE ROWNUM <= 10
+        ORDER BY "date" DESC
+        ]]>
+    </select>
+    <select id="getBestByCont" parameterType="String" resultType="com.test.board.Post">
+         <![CDATA[
+        SELECT postid, title, "date", views, plike, tcoment, nickname
+        FROM (
+                 SELECT p.post_id AS postid, p.post_title AS title, p.post_date AS "date", p.views, p.plike,
+                        COUNT(c.b_comment_id) AS tcoment, u.nickname
+                 FROM post p
+                          LEFT JOIN b_comment c ON p.post_id = c.post_id
+                          INNER JOIN users u ON u.userno = p.user_no
+                 WHERE p.post_cont LIKE #{keyword}
+                 GROUP BY p.post_id, p.post_title, p.post_date, p.views, p.plike, u.nickname
+                 ORDER BY p.views DESC
+             )
+        WHERE ROWNUM <= 10
+        ORDER BY "date" DESC
+        ]]>
+    </select>
+</mapper>
